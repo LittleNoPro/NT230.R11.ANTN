@@ -1,0 +1,20 @@
+\section{Introduction}\label{sec:intro}
+Webshells are the standard persistence mechanism after a web-application compromise. GlareShell~\paperref{}
+proposes to detect PHP webshells statically by turning each script into an interprocedural control-flow
+graph (ICFG) of PHP statements, attributing each node with a word embedding of the normalised statement and a
+risk level, and classifying the graph with a GNN. It reports an F1 of 0.9887 with GAT, above sequence- and
+tree-based approaches.
+
+This report reproduces GlareShell from its description -- neither code nor data were released -- and then asks
+whether the reported performance measures what it claims to measure. Our contributions:
+\begin{enumerate}
+  \item \textbf{A working re-implementation} on top of the same static-analysis tool (LChecker), including four
+        extractor problems that silently corrupt the graphs if left unfixed (\Cref{sec:method}).
+  \item \textbf{A rebuilt, documented corpus} (GlareShell-R) from the paper's sources with provenance, two
+        deduplication levels, near-duplicate clusters, a data card and a label guide (\Cref{sec:dataset}).
+  \item \textbf{A faithful replication} of the paper's Tables 2 and 4 and Figures 6--8 with five seeds and confidence
+        intervals (\Cref{sec:repro}).
+  \item \textbf{A leakage and generalisation analysis}: a cluster-disjoint split, a cross-source test on four unseen
+        benign projects, simple baselines, and an error taxonomy (\Cref{sec:beyond,sec:errors}).
+\end{enumerate}
+\input{sections/summary_findings}
