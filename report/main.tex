@@ -1,6 +1,6 @@
 \documentclass[10pt,a4paper]{article}
 \usepackage[margin=2.1cm]{geometry}
-\usepackage[T1]{fontenc}
+\usepackage[T5,T1]{fontenc}  % T5 only for the Vietnamese names on the title
 \usepackage{times}
 \usepackage{microtype}
 \usepackage{booktabs,multirow,tabularx,makecell,threeparttable}
@@ -26,14 +26,16 @@
 \newcommand{\repro}[1]{\textcolor{ForestGreen}{\textbf{#1}}}
 \newcommand{\notrepro}[1]{\textcolor{BrickRed}{\textbf{#1}}}
 \newcommand{\improved}[1]{\textcolor{RoyalBlue}{\textbf{#1}}}
+% Vietnamese names: T5 encoding + TeX Gyre Termes (Times with Vietnamese glyphs)
+\newcommand{\vn}[1]{{\fontencoding{T5}\fontfamily{qtm}\selectfont #1}}
 \newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
 
 \title{\textbf{Reproducing GlareShell:\\ Graph Learning-based PHP Webshell Detection, Revisited under Leakage Control}\\[4pt]
 \large NT230 -- Malware analysis course project}
 \author{%
-  \TODO{Team name} \\
-  \TODO{Member 1 -- Student ID} \quad \TODO{Member 2 -- Student ID} \quad \TODO{Member 3 -- Student ID}\\
-  Instructor: \TODO{Instructor name}}
+  \vn{\DJ\d{\abreve}ng Minh T\'u -- 24520033 \quad V\~o Quang V\~u -- 24522045 \quad
+      L\ecircumflex{} Tr\'{\i} \DJ\'{\uhorn}c -- 24520009}\\[2pt]
+  Instructor: \vn{Phan Th\'{\ecircumflex} Duy}}
 \date{October 2026}
 
 \begin{document}
