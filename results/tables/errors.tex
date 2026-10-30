@@ -1,0 +1,41 @@
+\begin{tabular}{@{}lllrr@{}}
+\toprule
+Protocol & Error & Tag (non-exclusive) & Count (5 seeds) & Share \\ \midrule
+paper\_random & FN & no risky built-in call & 31 & 86\% \\
+paper\_random & FN & no request input in ICFG & 30 & 83\% \\
+paper\_random & FN & empty ICFG & 27 & 75\% \\
+paper\_random & FN & parse error (recovered) & 24 & 67\% \\
+paper\_random & FN & tiny ICFG (<5 statements) & 3 & 8\% \\
+paper\_random & FN & no risky built-in call (dynamic call \$f()) & 2 & 6\% \\
+paper\_random & FN & extractor crash & 1 & 3\% \\
+paper\_random & FP & benign reads request input & 12 & 46\% \\
+paper\_random & FP & no tag & 9 & 35\% \\
+paper\_random & FP & benign uses callback/eval-like call & 6 & 23\% \\
+paper\_random & FP & tiny ICFG (<5 statements) & 3 & 12\% \\
+paper\_random & FP & benign uses critical call & 1 & 4\% \\
+clean\_group & FN & no request input in ICFG & 28 & 67\% \\
+clean\_group & FN & no risky built-in call & 26 & 62\% \\
+clean\_group & FN & parse error (recovered) & 20 & 48\% \\
+clean\_group & FN & empty ICFG & 16 & 38\% \\
+clean\_group & FN & tiny ICFG (<5 statements) & 12 & 29\% \\
+clean\_group & FN & no risky built-in call (dynamic call \$f()) & 5 & 12\% \\
+clean\_group & FN & encoded payload string & 3 & 7\% \\
+clean\_group & FN & ICFG truncated at 2000 nodes & 2 & 5\% \\
+clean\_group & FP & no tag & 7 & 32\% \\
+clean\_group & FP & benign uses callback/eval-like call & 7 & 32\% \\
+clean\_group & FP & tiny ICFG (<5 statements) & 7 & 32\% \\
+clean\_group & FP & benign reads request input & 4 & 18\% \\
+clean\_group & FP & benign uses critical call & 1 & 5\% \\
+cross\_source & FN & no request input in ICFG & 27 & 84\% \\
+cross\_source & FN & no risky built-in call & 21 & 66\% \\
+cross\_source & FN & parse error (recovered) & 10 & 31\% \\
+cross\_source & FN & empty ICFG & 5 & 16\% \\
+cross\_source & FN & no risky built-in call (dynamic call \$f()) & 4 & 12\% \\
+cross\_source & FN & tiny ICFG (<5 statements) & 1 & 3\% \\
+cross\_source & FP & no tag & 360 & 47\% \\
+cross\_source & FP & tiny ICFG (<5 statements) & 215 & 28\% \\
+cross\_source & FP & benign reads request input & 108 & 14\% \\
+cross\_source & FP & benign uses callback/eval-like call & 93 & 12\% \\
+cross\_source & FP & benign uses critical call & 23 & 3\% \\
+\bottomrule
+\end{tabular}

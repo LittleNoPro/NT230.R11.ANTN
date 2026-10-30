@@ -1,0 +1,8 @@
+samples/
+data/
+results/
+models/
+report/
+.git/
+**/__pycache__/
+*.zip

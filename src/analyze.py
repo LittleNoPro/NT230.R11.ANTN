@@ -146,13 +146,14 @@ def protocols(S):
             r += [fmt(a["f1"]) if a else "--", fmt(a["fpr"]) if a else "--"]
         runs = load(pats["cross_source"])
         if runs:
-            # cross-source: pooled counts over seeds are not independent; report seed-0 Wilson CIs + seed mean
+            # cross-source: mean +- CI over seeds (as elsewhere); seed-0 Wilson CIs show the sampling
+            # uncertainty of the fixed test set (only 18 novel webshells) and are kept in summary.json
             a = agg(runs)
             t = runs[0]["test"]
             lo, hi = wilson(t["fp"], t["fp"] + t["tn"])
             rlo, rhi = wilson(t["tp"], t["tp"] + t["fn"])
             S["protocols"][name]["cross_source"] = dict(agg=a, seed0=t, fpr_wilson=(lo, hi), recall_wilson=(rlo, rhi))
-            r += [f"{a['fpr'][0]:.4f} [{lo:.4f},{hi:.4f}]", f"{a['recall'][0]:.3f} [{rlo:.2f},{rhi:.2f}]"]
+            r += [fmt(a["fpr"]), fmt(a["recall"], 3)]
         else:
             r += ["--", "--"]
         rows.append(r)
@@ -240,7 +241,7 @@ def error_taxonomy(S):
                     want.add(s)
     for part in sorted((PROC / "icfg").glob("part-*.jsonl")):
         for line in open(part):
-            if line[8:72] in want or json.loads(line)["id"] in want:
+            if line[7:71] in want:  # line starts with {"id":"<sha256>"
                 rr = json.loads(line)
                 raws = [n[1] for n in rr.get("nodes", [])]
                 dyn[rr["id"]] = dict(dyn_call=any(re.search(r"(^|[^\w>:])\$\w+\s*\(", x) for x in raws),
@@ -248,6 +249,8 @@ def error_taxonomy(S):
                                      superglobal=any("$_" in x for x in raws))
 
     def tags(s, y):
+        if s not in feats.index:  # extractor crashed, no graph features
+            return ["extractor crash"]
         f, d = feats.loc[s], dyn.get(s, {})
         t = []
         if f.n_nodes == 0:
@@ -291,7 +294,7 @@ def error_taxonomy(S):
         out[proto] = dict(n=n, tags={k: dict(v.most_common()) for k, v in c.items()},
                           sources={k: dict(v.most_common(6)) for k, v in src.items()})
         for k in ("FN", "FP"):
-            for t, v in c[k].most_common(8):
+            for t, v in c[k].most_common(5):
                 rows.append([proto.replace("_", r"\_"), k, t.replace("$", r"\$").replace("_", r"\_"), str(v),
                              f"{100 * v / max(n[k], 1):.0f}\\%"])
     latex_table(rows, ["Protocol", "Error", "Tag (non-exclusive)", "Count (5 seeds)", "Share"], TAB / "errors.tex", n_text=3)

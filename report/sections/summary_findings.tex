@@ -1,1 +1,12 @@
-\TODO{summary of findings -- after GNN runs}
+
+\paragraph{Summary of findings.}
+\begin{itemize}
+  \item \textbf{RQ1:} the headline performance is reproduced: F1 0.98 on the paper's protocol (paper: 0.97--0.99).
+  \item \textbf{RQ2:} the component claims are not: GAT $\approx$ GCN $\approx$ GIN, embedding dimension and context
+        window barely matter, and normalisation/risk weights do not significantly help (and hurt on a clean split).
+  \item \textbf{RQ3:} 77\% of test webshells leak via near-duplicates (F1 $-$2 points without them); a token
+        TF-IDF + LR baseline is better than every GNN, and graph statistics alone reach F1 0.92.
+  \item \textbf{RQ4:} on four unseen benign projects the FPR rises from 0.4\% to 1.7\%; recall on webshells from
+        new collections is 0.54--0.64; 10 of 12 small legitimate scripts are flagged. The detector has learned
+        ``not framework code'' rather than ``malicious''.
+\end{itemize}

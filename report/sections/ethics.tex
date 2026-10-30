@@ -18,4 +18,4 @@ PHP-Parser v4.19.4, no composer needed), \texttt{requirements.txt} (exact versio
 \texttt{scripts/reproduce.sh} (end-to-end), the manifest with SHA-256 of every sample (integrity check), the splits
 as JSON, every run's configuration, metrics and per-file predictions as JSON (\texttt{results/runs/}), and
 \texttt{src/analyze.py}, which regenerates every table and figure of this report. Total runtime on our laptop:
-\TODO{hours}.
+dominated by the 115 GNN runs (5.2 GPU-hours measured); ICFG extraction costs 11\,ms per file, i.e.\ under 5 CPU-minutes for the whole corpus; baselines and analysis add minutes.

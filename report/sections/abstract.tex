@@ -1,1 +1,15 @@
-\TODO{abstract -- after GNN runs}
+\begin{abstract}
+GlareShell (Feng et al., Computer Networks 2024) detects PHP webshells by turning each script into an
+interprocedural control-flow graph of statements, embedding the statements with word-embedding models, adding a
+risk level per statement and classifying the graph with a GNN; it reports F1 = 0.9887. Neither code nor data were
+released. We re-implement the pipeline on the same static-analysis tool (with four fixes needed for modern PHP),
+rebuild the corpus from the paper's sources with provenance, hashes and near-duplicate clusters, and run every
+experiment with five seeds. On the paper's protocol we reproduce the headline result (F1 0.98 for GCN, GIN and GAT;
+FastText as best embedding) but not the finer claims: GAT is not better than GCN or GIN, the dimension curve is
+flat, and the ablation of normalisation and risk weights is within noise. Beyond the paper we find that
+77\% of test webshells in a random split have a near-duplicate in training, that a TF-IDF + logistic-regression
+baseline beats every GNN (F1 0.997), that twelve graph statistics without code semantics already reach F1 0.92, that
+the false-positive rate quadruples on unseen benign projects (1.7\%), and that the final model flags 10 of 12
+hand-written legitimate standalone scripts as webshells. High scores on this benchmark mostly measure the difference
+between large framework code and webshell collections, not malicious behaviour.
+\end{abstract}

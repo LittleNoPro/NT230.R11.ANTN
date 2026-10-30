@@ -1,7 +1,31 @@
 \section{Discussion}\label{sec:discussion}
 
 \subsection{What was reproduced, improved, or not reproduced}
-\TODO{verdict table: reproduced / improved / not reproduced -- after GNN runs}
+\Cref{tab:verdict} separates what we could confirm from what we improved and what we could not reproduce.
+Colours: \repro{reproduced}, \improved{improved / extended}, \notrepro{not reproduced}.
+
+\begin{table}[t]\centering\footnotesize
+\caption{Verdict per claim of the paper and per addition of this report.}\label{tab:verdict}
+\begin{tabularx}{\linewidth}{@{}p{0.30\linewidth}Xl@{}}\toprule
+Claim / item & Our evidence & Verdict \\ \midrule
+ICFG + embedding + GNN detects webshells with F1 $\approx$ 0.95--0.99 (Tables 2, 4) &
+  F1 0.90--0.98 (Table 2 setting), 0.980--0.983 (Table 4 setting) on the paper's protocol, 5 seeds & \repro{Reproduced} \\
+FastText is the best embedding (Table 2) & 0.977 $\pm$ 0.009, best of six by $>$0.04 & \repro{Reproduced} \\
+Ranking of the other five embeddings & within 0.036 F1, overlapping CIs; order differs & \notrepro{Not reproduced} \\
+GAT is the best GNN (Table 4) & GCN 0.981, GIN 0.983, GAT 0.980, overlapping CIs & \notrepro{Not reproduced} \\
+F1 rises then falls with embedding dimension (Fig.~6) & flat 0.978--0.981 for 20--120 & \notrepro{Not reproduced} \\
+Context window 5 is optimal (Fig.~6--7) & nominal maximum at 5, not significant & \repro{Partly reproduced} \\
+Normalisation and risk weights improve all metrics (Fig.~8) & same order on \pr{} but within CIs; reversed on \cg{} & \notrepro{Not reproduced} \\
+GNN outperforms sequence/text approaches & TF-IDF + LR: F1 0.997 (\pr), 0.992 (\cg), lower FPR everywhere & \notrepro{Not reproduced} \\
+Per-file cost suitable for online monitoring & 11\,ms extraction + ms scoring per file & \repro{Reproduced} \\ \midrule
+Working extractor on PHP 8 code & four LChecker fixes, documented & \improved{Improved} \\
+Documented corpus with SHA-256, provenance, near-dup clusters & GlareShell-R, data card, label guide & \improved{Extended} \\
+Leakage-controlled and cross-source evaluation & 77\% of test webshells leak in the paper's split; F1 $-$2 points on \cg; FPR $\times$4 on unseen projects & \improved{Extended} \\
+Shortcut probes & graph statistics alone F1 0.92; 10/12 benign standalone scripts flagged & \improved{Extended} \\
+Standalone detector / directory monitor & \texttt{src/detect.py} & \improved{Extended} \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
 \subsection{Threats to validity}\label{sec:threats}
 \paragraph{Internal validity (does our pipeline do what the paper did?).}
@@ -25,7 +49,7 @@
         ``file of a public collection''. The two populations also differ in age (PHP~4/5 vs.\ PHP~8 style), size,
         structure (procedural vs.\ namespaced classes) and parseability (\Cref{tab:extraction}). A classifier can reach
         high scores by separating these \emph{populations} rather than by recognising malicious behaviour; the
-        graph-statistics probe and the hand-written standalone benign scripts (\Cref{sec:errors}) quantify this.
+        graph-statistics probe and the hand-written standalone benign scripts (\Cref{sec:beyond}) quantify this.
   \item \emph{Label noise.} Collections contain non-malicious helper files; benign projects contain test fixtures and
         installers with webshell-like capabilities. We did not relabel by hand.
   \item \emph{Class prior.} 23\% webshells in test is unrealistically high for a file-upload monitor, so precision and F1

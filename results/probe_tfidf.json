@@ -1,0 +1,14 @@
+{
+ "cleanup_cron.php": 0.4905,
+ "contact_form.php": 0.7601,
+ "download.php": 0.373,
+ "export_csv.php": 0.5685,
+ "guestbook.php": 0.9156,
+ "hello.php": 0.9237,
+ "image_upload.php": 0.2515,
+ "json_api.php": 0.3767,
+ "login.php": 0.6508,
+ "ping_tool.php": 0.6282,
+ "router.php": 0.1463,
+ "template_render.php": 0.2013
+}

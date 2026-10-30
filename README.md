@@ -6,6 +6,20 @@ The original code and dataset are not public; everything here is rebuilt from th
 
 Report: [`report/main.tex`](report/main.tex) → `report/main.pdf`.
 
+## Key results (5 seeds, mean ± 95% CI; full report: `report/main.pdf`)
+| | Paper | Ours |
+|---|---|---|
+| Best embedding (Table 2, GCN) | FastText 0.945 | FastText 0.977 ± 0.009 |
+| GCN / GIN / GAT F1 (Table 4) | 0.968 / 0.977 / **0.989** | 0.981 / 0.983 / 0.980 (indistinguishable) |
+| TF-IDF + LR baseline F1 | — | **0.997** |
+| Test webshells with a near-duplicate in train (random split) | — | 77% |
+| GAT F1, cluster-disjoint split | — | 0.963 ± 0.008 |
+| GAT FPR, 4 unseen benign projects | — | 1.7% (0.4% in-distribution) |
+| Benign standalone scripts flagged (`tests/probe_benign`) | — | 10 / 12 |
+
+Headline F1 is reproduced; the component claims (best GNN, dimension curve, normalisation/risk ablation) are not
+statistically supported, and the benchmark is largely separable by code population rather than behaviour.
+
 ## ⚠️ Safety rules (read first)
 * The corpus contains **real, working webshells**. They are only **parsed** (PHP-Parser) and read as bytes.
   No script in this repository includes, requires, evaluates or serves a sample. Never put `samples/` under a
@@ -31,6 +45,7 @@ src/       build_manifest.py   provenance, hashes, 2-level dedup          -> dat
            baselines.py        TF-IDF+LR/XGB, rules, graph-stats XGB
            analyze.py          tables, figures, error taxonomy            -> results/tables, report/figures
            train_final.py / detect.py  demo model + standalone detector / directory watcher
+           probe.py            TF-IDF baseline on tests/probe_benign (shortcut probe)
 docs/      DATA_CARD.md  LABEL_GUIDE.md  SCHEMA.md
 report/    LaTeX report
 ```

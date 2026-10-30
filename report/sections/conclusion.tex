@@ -1,1 +1,14 @@
-\TODO{conclusion -- after GNN runs}
+\section{Conclusion}\label{sec:conclusion}
+We reproduced GlareShell without the authors' code or data. The pipeline works and, on the paper's own protocol, the
+reported F1 of about 0.98 is reproducible. The paper's finer conclusions -- which embedding is second best, which GNN
+is best, how dimension and context size matter, and that normalisation and risk weights help -- are not supported once
+seeds and confidence intervals are taken into account.
+
+More important is what the benchmark measures. Benign files come from five large frameworks, webshells from public
+collections; 77\% of test webshells have a near-duplicate in training; a lexical baseline is more accurate than any
+GNN; and the models flag most small, legitimate standalone scripts. A detector trained this way would raise frequent
+false alarms on exactly the small vendor applications that run on industrial web servers. For a practical
+detector we would (i) collect benign code that resembles the deployment (small procedural applications, admin
+tools, upload handlers), (ii) evaluate on cluster- and source-disjoint splits by default, (iii) relabel helper files
+inside webshell kits, and (iv) report FPR on unseen projects alongside F1. All code, splits, per-run predictions and
+the document trail needed to rerun this study are in the repository.
