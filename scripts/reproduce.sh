@@ -10,3 +10,4 @@ python splits.py
 python baselines.py
 python experiments.py table2 ablation table4 clean cross sweep
 python analyze.py
+python train_final.py                         # demo model -> models/ (used by detect.py)

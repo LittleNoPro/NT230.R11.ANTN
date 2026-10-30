@@ -63,6 +63,12 @@ def train_glove(sents, dim, window, seed, epochs=25, x_max=100.0, alpha=0.75, lr
     return {w: vec[i] for w, i in wid.items()}
 
 
+def train_fasttext(sents, dim=100, window=5, seed=0):
+    from gensim.models import FastText
+    # bucket reduced from 2M to 200k to fit in this machine's RAM (documented deviation)
+    return FastText(sents, bucket=200_000, vector_size=dim, window=window, min_count=1, workers=8, seed=seed).wv
+
+
 def build_table(G, vocab, train_keys, field, method, dim=100, window=5, seed=0, tag=""):
     """Train `method` on the training files and return the lookup table for the whole vocab."""
     h = hashlib.md5(("|".join(sorted(train_keys)) + f"{field}{method}{dim}{window}{seed}{tag}").encode()).hexdigest()[:16]
@@ -77,9 +83,7 @@ def build_table(G, vocab, train_keys, field, method, dim=100, window=5, seed=0, 
         m = Word2Vec(sents, sg=int(method == "w2v_s"), **common)
         lookup = m.wv
     elif method == "fasttext":
-        # bucket reduced from 2M to 200k to fit in this machine's RAM (documented deviation)
-        m = FastText(sents, bucket=200_000, **common)
-        lookup = m.wv
+        lookup = train_fasttext(sents, dim, window, seed)
     elif method in ("d2v_m", "d2v_w"):
         docs = [TaggedDocument(s, [i]) for i, s in enumerate(sents)]
         # PV-DBOW does not train word vectors by default; dbow_words=1 is needed to embed statements

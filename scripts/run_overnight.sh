@@ -4,6 +4,6 @@
 cd "$(dirname "$0")/.." || exit 1
 source ~/miniforge3/etc/profile.d/conda.sh && conda activate glareshell
 cd src
-nohup bash -c 'python -u experiments.py table2 ablation table4 clean cross sweep 2>&1 | grep --line-buffered -v Warning; python analyze.py; echo ALL_DONE' \
+nohup bash -c 'python -u experiments.py table2 ablation table4 clean cross sweep 2>&1 | grep --line-buffered -v Warning; python analyze.py; python train_final.py 2>&1 | grep -v -i warn; echo ALL_DONE' \
   >> ../results/logs/overnight.log 2>&1 &
 echo "started (pid $!). Progress: ls results/runs | grep -vc ^bl_   (target ~110)"

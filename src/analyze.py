@@ -47,9 +47,12 @@ def fmt(mc, digits=4):
     return f"{m:.{digits}f}" + (f"$\\pm${h:.{digits}f}" if h == h else "")
 
 
-def latex_table(rows, header, path, caption=None):
+def latex_table(rows, header, path, n_text=1):
+    """Write a complete tabular (booktabs); the first n_text columns are left-aligned text."""
     TAB.mkdir(parents=True, exist_ok=True)
-    lines = [" & ".join(header) + r" \\ \midrule"] + [" & ".join(r) + r" \\" for r in rows]
+    spec = "l" * n_text + "r" * (len(header) - n_text)
+    lines = [rf"\begin{{tabular}}{{@{{}}{spec}@{{}}}}", r"\toprule", " & ".join(header) + r" \\ \midrule"]
+    lines += [" & ".join(r) + r" \\" for r in rows] + [r"\bottomrule", r"\end{tabular}"]
     path.write_text("\n".join(lines) + "\n")
 
 
@@ -101,7 +104,7 @@ def ablation(S):
     fig.tight_layout()
     fig.savefig(FIG / "ablation.pdf")
     plt.close(fig)
-    latex_table(rows, ["Protocol", "Variant", "Precision", "Recall", "TNR", "Acc", "F1", "FPR"], TAB / "ablation.tex")
+    latex_table(rows, ["Protocol", "Variant", "Precision", "Recall", "TNR", "Acc", "F1", "FPR"], TAB / "ablation.tex", n_text=2)
 
 
 def sweeps(S):
@@ -207,7 +210,7 @@ def leakage_and_data(S):
         rows.append([lab, sub, src.replace("__", "/").replace("_", r"\_"), str(len(d)), str(int(d.is_php.sum())),
                      str(int(d.keep_exact.sum())), str(int(d.keep_ws.sum()))])
     latex_table(rows, ["Label", "Subset", "Source", "PHP-ext files", "contain \\texttt{<?}", "exact dedup", "ws dedup"],
-                TAB / "dataset_funnel.tex")
+                TAB / "dataset_funnel.tex", n_text=3)
     st = pd.read_csv(PROC / "graph_stats.csv")
     g = st.groupby(["label", "subset"]).agg(n=("sha256", "size"), fail=("ok", lambda s: int((s == 0).sum())),
                                            parse=("parse_error", "sum"), empty=("n_nodes", lambda s: int((s == 0).sum())),
@@ -216,7 +219,7 @@ def leakage_and_data(S):
     S["extraction"] = json.loads(g.reset_index().to_json(orient="records"))
     latex_table([[a, b] + [f"{v:.0f}" if k != "secs" else f"{v*1000:.1f}" for k, v in r.items()] for (a, b), r in g.iterrows()],
                 ["Label", "Subset", "Files", "Crash", "Parse err.", "Empty ICFG", "Truncated", "Median nodes",
-                 "P90 nodes", "ms/file"], TAB / "extraction.tex")
+                 "P90 nodes", "ms/file"], TAB / "extraction.tex", n_text=2)
     ws = st[(st.label == "webshell") & (st.subset == "paper")]
     fig, ax = plt.subplots(figsize=(4.5, 3))
     ax.hist(ws.n_nodes.clip(upper=2000), bins=50)
@@ -291,7 +294,7 @@ def error_taxonomy(S):
             for t, v in c[k].most_common(8):
                 rows.append([proto.replace("_", r"\_"), k, t.replace("$", r"\$").replace("_", r"\_"), str(v),
                              f"{100 * v / max(n[k], 1):.0f}\\%"])
-    latex_table(rows, ["Protocol", "Error", "Tag (non-exclusive)", "Count (5 seeds)", "Share"], TAB / "errors.tex")
+    latex_table(rows, ["Protocol", "Error", "Tag (non-exclusive)", "Count (5 seeds)", "Share"], TAB / "errors.tex", n_text=3)
     S["errors"] = out
 
 

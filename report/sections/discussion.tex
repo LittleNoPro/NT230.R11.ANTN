@@ -1,0 +1,48 @@
+\section{Discussion}\label{sec:discussion}
+
+\subsection{What was reproduced, improved, or not reproduced}
+\TODO{verdict table: reproduced / improved / not reproduced -- after GNN runs}
+
+\subsection{Threats to validity}\label{sec:threats}
+\paragraph{Internal validity (does our pipeline do what the paper did?).}
+\begin{itemize}
+  \item \emph{Unreleased implementation.} ICFG construction above LChecker's CFG builder, the pruning rules, the
+        built-in function list, the risk lists and the statement text format are our reading of the paper. Different
+        choices change the vocabulary (we obtain 484k distinct normalised statements) and therefore the embeddings.
+  \item \emph{Extractor fixes.} We changed LChecker's behaviour on namespaces, try/catch, \texttt{for} conditions and
+        short tags (\Cref{sec:method}). Each fix was needed to avoid graphs that are empty for one class only; if the
+        authors ran vanilla LChecker on PHP~8 their graphs were partly empty, and their numbers are not directly
+        comparable to ours in either direction.
+  \item \emph{Unspecified training details} (epochs for Table 2, early stopping, model selection, embedding training
+        corpus, threshold). We fixed them before looking at test results and report all of them (\Cref{tab:hyper}).
+  \item \emph{Resource-driven deviations}: 2,000-statement cap (15\% of webshells truncated), FastText 200k buckets,
+        own GloVe implementation.
+\end{itemize}
+
+\paragraph{Construct validity (do the labels and metrics measure webshell detection?).}
+\begin{itemize}
+  \item \emph{Source-level labels.} ``Benign'' means ``file of a large, modern framework/CMS release'', ``webshell'' means
+        ``file of a public collection''. The two populations also differ in age (PHP~4/5 vs.\ PHP~8 style), size,
+        structure (procedural vs.\ namespaced classes) and parseability (\Cref{tab:extraction}). A classifier can reach
+        high scores by separating these \emph{populations} rather than by recognising malicious behaviour; the
+        graph-statistics probe and the hand-written standalone benign scripts (\Cref{sec:errors}) quantify this.
+  \item \emph{Label noise.} Collections contain non-malicious helper files; benign projects contain test fixtures and
+        installers with webshell-like capabilities. We did not relabel by hand.
+  \item \emph{Class prior.} 23\% webshells in test is unrealistically high for a file-upload monitor, so precision and F1
+        overstate deployment performance; FPR on the 9,091 held-out benign files is the more relevant number.
+\end{itemize}
+
+\paragraph{External validity (does it generalise?).}
+\begin{itemize}
+  \item Only five benign projects in training; four more in testing. Industrial web servers (the paper's motivating
+        setting) run vendor-specific, often small, procedural PHP applications that resemble neither population.
+  \item Only 18 webshells are novel w.r.t.\ the paper sources; recall on unseen families is therefore estimated with
+        very wide intervals. No temporal split was possible (\Cref{sec:leak}).
+  \item No adaptive attacker: renaming variables and functions is neutralised by normalisation, but string building,
+        dynamic calls and payload encoding already defeat the risk mechanism for many collected samples.
+\end{itemize}
+
+\paragraph{Conclusion validity (are the differences real?).}
+Five seeds give 95\% intervals of roughly $\pm$0.01--0.03 F1 for the GNNs; several differences reported in the paper
+(e.g.\ between embedding methods, 0.91--0.95 F1 in a single run) are of the same order and cannot be distinguished
+without repeated runs. We never select hyper-parameters on the test set.

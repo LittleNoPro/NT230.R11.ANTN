@@ -19,7 +19,7 @@ Report: [`report/main.tex`](report/main.tex) → `report/main.pdf`.
 
 ## Layout
 ```
-scripts/   fetch_sources.sh  setup_tools.sh  reproduce.sh  pack_samples.sh
+scripts/   fetch_sources.sh  setup_tools.sh  reproduce.sh  run_overnight.sh  pack_samples.sh  verify_checksums.sh
 src/       build_manifest.py   provenance, hashes, 2-level dedup          -> data/manifests/manifest_all.csv
            php/extract_icfg.php LChecker CFGs + Algorithm 1 ICFG, pruning, normalisation, risk levels
            run_extract.py      parallel extraction                         -> data/processed/icfg/*.jsonl
@@ -30,6 +30,7 @@ src/       build_manifest.py   provenance, hashes, 2-level dedup          -> dat
            experiments.py      all GNN runs (resumable)                    -> results/runs/*.json
            baselines.py        TF-IDF+LR/XGB, rules, graph-stats XGB
            analyze.py          tables, figures, error taxonomy            -> results/tables, report/figures
+           train_final.py / detect.py  demo model + standalone detector / directory watcher
 docs/      DATA_CARD.md  LABEL_GUIDE.md  SCHEMA.md
 report/    LaTeX report
 ```
@@ -52,7 +53,17 @@ docker build -t glareshell-repro .
 docker run --rm --gpus all --network none -v "$PWD/samples:/work/samples:ro" \
   -v "$PWD/data:/work/data" -v "$PWD/results:/work/results" glareshell-repro bash scripts/reproduce.sh
 ```
-Integrity: `sha256sum -c` against `data/manifests/manifest_all.csv` (column `sha256`) verifies every sample.
+Integrity: `bash scripts/verify_checksums.sh` checks every kept sample against the SHA-256 in the manifest.
+
+## Demo (standalone detector)
+```bash
+cd src
+python train_final.py                       # FastText + GAT on the leakage-controlled split -> models/
+python detect.py path/to/file.php some/dir  # one-shot scan: verdict, probability, risky statements
+python detect.py --watch /var/www/uploads   # re-scan new/modified .php files (paper's file monitor)
+```
+Model loading takes ~45 s (gensim rebuilds FastText word vectors); scoring a file takes milliseconds.
+The detector only parses files; it never executes them.
 
 ## Deviations from the paper (all discussed in the report)
 | Paper | Here | Why |

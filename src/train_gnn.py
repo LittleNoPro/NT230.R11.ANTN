@@ -82,7 +82,8 @@ def predict(model, loader, dev):
     return torch.cat(ys).numpy(), torch.cat(ps).numpy()
 
 
-def run(cfg):
+def run(cfg, table=None, save=None):
+    """table: precomputed embedding table (else built/cached); save: path for the trained weights."""
     set_seed(cfg["seed"])
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     G = graphs()
@@ -96,7 +97,8 @@ def run(cfg):
     t0 = time.time()
     emb_split = cfg.get("emb_split", cfg["split"])
     emb_keys = json.load(open(SPLITS / f"{emb_split}_s{cfg['seed']}.json"))["train"]
-    table = build_table(G["graphs"], vocab, emb_keys, field, cfg["emb"], cfg["dim"], cfg["window"], cfg["seed"])
+    if table is None:
+        table = build_table(G["graphs"], vocab, emb_keys, field, cfg["emb"], cfg["dim"], cfg["window"], cfg["seed"])
     t_emb = time.time() - t0
     ds = {k: [make_data(G["graphs"][s], field, ymap[s]) for s in split[k]] for k in ("train", "val", "test")}
     gen = torch.Generator().manual_seed(cfg["seed"])
@@ -132,6 +134,8 @@ def run(cfg):
                secs_embedding=t_emb, secs_train=t_inf, n=dict((k, len(v)) for k, v in ds.items()),
                pred=dict(sha=split["test"], y=yt.tolist(), p=[round(float(x), 5) for x in pt]))
     dump_json(res, RUNS / f"{cfg['name']}.json")
+    if save:
+        torch.save(dict(cfg=cfg, state=best_state, emb_dim=int(np.asarray(table).shape[1])), save)
     return res
 
 
