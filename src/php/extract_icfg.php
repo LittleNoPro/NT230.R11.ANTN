@@ -11,7 +11,8 @@
  *
  * STATIC ANALYSIS ONLY: input files are parsed, never included or executed.
  *
- * Usage: php extract_icfg.php <list.tsv> <out.jsonl>
+ * Usage: php -d short_open_tag=On extract_icfg.php <list.tsv> <out.jsonl>
+ *   (short_open_tag must be On: many old webshells use bare "<?" tags)
  *   list.tsv lines: <sample_id>\t<absolute path>
  *
  * Deviations from vanilla LChecker (documented in the report):

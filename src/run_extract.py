@@ -31,7 +31,7 @@ def run_chunk(i, rows):
     lst.write_text("".join(f"{r.sha256}\t{abs_path(r)}\n" for r in rows))
     tmp = part.with_suffix(".tmp")
     try:
-        p = subprocess.run(["php", str(ROOT / "src/php/extract_icfg.php"), str(lst), str(tmp)],
+        p = subprocess.run(["php", "-d", "short_open_tag=On", str(ROOT / "src/php/extract_icfg.php"), str(lst), str(tmp)],
                            capture_output=True, text=True, timeout=60 * 30)
         tmp.rename(part)
         return i, p.returncode
