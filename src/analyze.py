@@ -1,0 +1,335 @@
+"""Aggregate runs into report tables (results/tables/*.tex), figures (report/figures/*.pdf),
+an error taxonomy and results/summary.json."""
+import glob
+import json
+import re
+from collections import Counter, defaultdict
+
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+from common import DATA, PROC, RESULTS, ROOT, RUNS, SPLITS, mean_ci, metrics, wilson
+
+TAB = RESULTS / "tables"
+FIG = ROOT / "report" / "figures"
+SHOW = ["precision", "recall", "tnr", "acc", "f1"]
+PAPER_T2 = {"glove": [0.8905, 0.9335, 0.8862, 0.9078, 0.9136], "w2v_c": [0.9216, 0.9595, 0.8998, 0.9303, 0.9373],
+            "w2v_s": [0.9024, 0.9552, 0.8986, 0.9116, 0.9355], "d2v_m": [0.9138, 0.9496, 0.8794, 0.9201, 0.9309],
+            "d2v_w": [0.9236, 0.9568, 0.8930, 0.9286, 0.9293], "fasttext": [0.9329, 0.9615, 0.9174, 0.9405, 0.9454]}
+PAPER_T4 = {"gcn": [0.9591, 0.9795, 0.9334, 0.9614, 0.9675], "gin": [0.9676, 0.9878, 0.9516, 0.9718, 0.9767],
+            "gat": [0.9739, 0.9952, 0.9712, 0.9837, 0.9887]}
+NAMES = {"glove": "GloVe", "w2v_c": "W2V-c", "w2v_s": "W2V-s", "d2v_m": "D2V-m", "d2v_w": "D2V-w",
+         "fasttext": "FastText", "gcn": "GCN", "gin": "GIN", "gat": "GAT", "none": "none", "n": "n", "nw": "n+w",
+         "tfidf_lr": "TF-IDF + LR", "tfidf_xgb": "TF-IDF + XGBoost", "struct_xgb": "Graph-stats + XGBoost",
+         "rule_crit": "Rule: critical call", "rule_risk": "Rule: any risky call",
+         "rule_risk_input": "Rule: risky call + request input"}
+
+
+def load(pattern):
+    out = []
+    for f in sorted(glob.glob(str(RUNS / f"{pattern}.json"))):
+        out.append(json.load(open(f)))
+    return out
+
+
+def agg(runs):
+    """metric -> (mean, ci half width) over seeds."""
+    return {m: mean_ci([r["test"][m] for r in runs]) for m in SHOW + ["fpr"]} | {"n_seeds": len(runs)}
+
+
+def fmt(mc, digits=4):
+    m, h = mc
+    if m != m:
+        return "--"
+    return f"{m:.{digits}f}" + (f"$\\pm${h:.{digits}f}" if h == h else "")
+
+
+def latex_table(rows, header, path, caption=None):
+    TAB.mkdir(parents=True, exist_ok=True)
+    lines = [" & ".join(header) + r" \\ \midrule"] + [" & ".join(r) + r" \\" for r in rows]
+    path.write_text("\n".join(lines) + "\n")
+
+
+def table2(S):
+    rows = []
+    for m in PAPER_T2:
+        runs = load(f"t2_{m}_s?")
+        if not runs:
+            continue
+        a = agg(runs)
+        S["table2"][m] = a
+        rows.append([NAMES[m]] + [fmt(a[k]) for k in SHOW] + [f"{PAPER_T2[m][4]:.4f}", f"{a['f1'][0] - PAPER_T2[m][4]:+.4f}"])
+    latex_table(rows, ["Method", "Precision", "Recall", "TNR", "Acc", "F1", "F1 (paper)", r"$\Delta$F1"], TAB / "table2.tex")
+
+
+def table4(S):
+    rows = []
+    for g in PAPER_T4:
+        runs = load(f"t4_{g}_s?")
+        if not runs:
+            continue
+        a = agg(runs)
+        S["table4"][g] = a
+        rows.append([NAMES[g]] + [fmt(a[k]) for k in SHOW] + [f"{PAPER_T4[g][4]:.4f}", f"{a['f1'][0] - PAPER_T4[g][4]:+.4f}"])
+    latex_table(rows, ["Model", "Precision", "Recall", "TNR", "Acc", "F1", "F1 (paper)", r"$\Delta$F1"], TAB / "table4.tex")
+
+
+def ablation(S):
+    groups = {"paper_random (GCN, Table-2 setting)": {"none": "abl_none_s?", "n": "abl_n_s?", "nw": "t2_fasttext_s?"},
+              "clean_group (GAT, Table-3 setting)": {"none": "clean_abl_none_s?", "n": "clean_abl_n_s?", "nw": "clean_gat_s?"}}
+    rows = []
+    fig, axes = plt.subplots(1, 2, figsize=(9, 3.2), sharey=False)
+    for ax, (gname, pats) in zip(axes, groups.items()):
+        S["ablation"][gname] = {}
+        xs = np.arange(len(SHOW))
+        for i, (v, pat) in enumerate(pats.items()):
+            runs = load(pat)
+            if not runs:
+                continue
+            a = agg(runs)
+            S["ablation"][gname][v] = a
+            rows.append([gname.split(" ")[0].replace("_", r"\_"), NAMES[v]] + [fmt(a[k]) for k in SHOW + ["fpr"]])
+            ax.bar(xs + (i - 1) * 0.27, [a[k][0] for k in SHOW], 0.27, yerr=[a[k][1] if a[k][1] == a[k][1] else 0 for k in SHOW],
+                   label=NAMES[v], capsize=2)
+        ax.set_xticks(xs, ["Prec.", "Rec.", "TNR", "Acc", "F1"])
+        ax.set_title(gname, fontsize=9)
+        ax.set_ylim(0.6, 1.0)
+        ax.legend(fontsize=8, loc="lower right")
+    fig.tight_layout()
+    fig.savefig(FIG / "ablation.pdf")
+    plt.close(fig)
+    latex_table(rows, ["Protocol", "Variant", "Precision", "Recall", "TNR", "Acc", "F1", "FPR"], TAB / "ablation.tex")
+
+
+def sweeps(S):
+    fig, axes = plt.subplots(1, 2, figsize=(9, 3))
+    for ax, (key, vals, pat, base) in zip(axes, [
+            ("dim", [20, 40, 60, 80, 100, 120], "dim{v}_s?", 100),
+            ("window", [2, 3, 4, 5, 6, 7], "win{v}_s?", 5)]):
+        ms, hs, xs = [], [], []
+        for v in vals:
+            runs = load(pat.format(v=v)) if v != base else [r for r in load("t2_fasttext_s?") if r["cfg"]["seed"] < 3]
+            if not runs:
+                continue
+            m, h = mean_ci([r["test"]["f1"] for r in runs])
+            xs.append(v); ms.append(m); hs.append(0 if h != h else h)
+        S["sweep"][key] = dict(x=xs, f1=ms, ci=hs)
+        ax.errorbar(xs, ms, yerr=hs, marker="o", capsize=3)
+        ax.set_xlabel("embedding dimension" if key == "dim" else "context window size")
+        ax.set_ylabel("F1 (FastText + GCN, 3 seeds)")
+        ax.grid(alpha=.3)
+    fig.tight_layout()
+    fig.savefig(FIG / "sweeps.pdf")
+    plt.close(fig)
+
+
+def protocols(S):
+    """Same models under the three protocols + baselines."""
+    rows = []
+    models = [("GlareShell GCN", {"paper_random": "t4_gcn_s?", "clean_group": "clean_gcn_s?", "cross_source": "cross_gcn_s?"}),
+              ("GlareShell GAT", {"paper_random": "t4_gat_s?", "clean_group": "clean_gat_s?", "cross_source": "cross_gat_s?"})]
+    for b in ["tfidf_lr", "tfidf_xgb", "struct_xgb", "rule_crit", "rule_risk", "rule_risk_input"]:
+        models.append((NAMES[b], {sp: f"bl_{sp}_{b}_s?" for sp in ("paper_random", "clean_group", "cross_source")}))
+    for name, pats in models:
+        S["protocols"][name] = {}
+        r = [name]
+        for sp in ("paper_random", "clean_group"):
+            runs = load(pats[sp])
+            a = agg(runs) if runs else None
+            S["protocols"][name][sp] = a
+            r += [fmt(a["f1"]) if a else "--", fmt(a["fpr"]) if a else "--"]
+        runs = load(pats["cross_source"])
+        if runs:
+            # cross-source: pooled counts over seeds are not independent; report seed-0 Wilson CIs + seed mean
+            a = agg(runs)
+            t = runs[0]["test"]
+            lo, hi = wilson(t["fp"], t["fp"] + t["tn"])
+            rlo, rhi = wilson(t["tp"], t["tp"] + t["fn"])
+            S["protocols"][name]["cross_source"] = dict(agg=a, seed0=t, fpr_wilson=(lo, hi), recall_wilson=(rlo, rhi))
+            r += [f"{a['fpr'][0]:.4f} [{lo:.4f},{hi:.4f}]", f"{a['recall'][0]:.3f} [{rlo:.2f},{rhi:.2f}]"]
+        else:
+            r += ["--", "--"]
+        rows.append(r)
+    latex_table(rows, ["Model", "F1 (paper split)", "FPR (paper split)", "F1 (clean)", "FPR (clean)",
+                       "FPR held-out benign", "Recall novel webshells"], TAB / "protocols.tex")
+
+
+def per_source_fpr(S):
+    man = pd.read_csv(DATA / "manifests/manifest_all.csv").drop_duplicates("sha256").set_index("sha256")
+    rows, out = [], {}
+    for name, pat in [("GlareShell GAT", "cross_gat_s?"), ("GlareShell GCN", "cross_gcn_s?"),
+                      ("TF-IDF + LR", "bl_cross_source_tfidf_lr_s?"), ("Rule: any risky call", "bl_cross_source_rule_risk_s?")]:
+        runs = load(pat)
+        if not runs:
+            continue
+        per = defaultdict(list)
+        for r in runs:
+            df = pd.DataFrame(dict(sha=r["pred"]["sha"], y=r["pred"]["y"], p=r["pred"]["p"]))
+            df["source"] = man.loc[df.sha, "source"].values
+            for s, d in df[df.y == 0].groupby("source"):
+                per[s].append(float((d.p >= 0.5).mean()))
+        out[name] = {s: mean_ci(v) for s, v in per.items()}
+    srcs = sorted({s for v in out.values() for s in v})
+    for s in srcs:
+        n = int(((man.subset == "heldout") & (man.source == s) & (man.label == "benign") & (man.keep_ws == 1)).sum())
+        rows.append([s.replace("__", "/").replace("_", r"\_"), str(n)] + [fmt(out[m][s], 4) if s in out[m] else "--" for m in out])
+    latex_table(rows, ["Held-out project", "Files"] + list(out), TAB / "per_source_fpr.tex")
+    S["per_source_fpr"] = out
+
+
+def leakage_and_data(S):
+    cl = pd.read_csv(DATA / "manifests/clusters.csv")
+    man = pd.read_csv(DATA / "manifests/manifest_all.csv")
+    leak = []
+    for seed in range(5):
+        sp = json.load(open(SPLITS / f"paper_random_s{seed}.json"))
+        c = cl.set_index("sha256").cluster
+        trc = set(c.loc[sp["train"]])
+        te = cl.set_index("sha256").loc[sp["test"]]
+        leak.append(te.assign(l=te.cluster.isin(trc)).groupby("label").l.mean().to_dict())
+    S["leakage_paper_random"] = {k: mean_ci([d[k] for d in leak]) for k in ("webshell", "benign")}
+    # cluster sizes among paper webshells
+    w = cl[(cl.label == "webshell") & (cl.subset == "paper")]
+    sizes = w.groupby("cluster").size()
+    S["webshell_clusters"] = dict(files=int(len(w)), clusters=int(len(sizes)), singletons=int((sizes == 1).sum()),
+                                  largest=int(sizes.max()), files_in_clusters_ge5=int(sizes[sizes >= 5].sum()))
+    fig, ax = plt.subplots(figsize=(4.5, 3))
+    vc = sizes.value_counts().sort_index()
+    ax.bar(vc.index.astype(str)[:15], vc.values[:15])
+    ax.set_xlabel("near-duplicate cluster size"); ax.set_ylabel("# clusters (webshell, paper sources)")
+    ax.set_yscale("log"); fig.tight_layout(); fig.savefig(FIG / "cluster_sizes.pdf"); plt.close(fig)
+    # dedup funnel per source
+    rows = []
+    for (lab, sub, src), d in man.groupby(["label", "subset", "source"]):
+        rows.append([lab, sub, src.replace("__", "/").replace("_", r"\_"), str(len(d)), str(int(d.is_php.sum())),
+                     str(int(d.keep_exact.sum())), str(int(d.keep_ws.sum()))])
+    latex_table(rows, ["Label", "Subset", "Source", "PHP-ext files", "contain \\texttt{<?}", "exact dedup", "ws dedup"],
+                TAB / "dataset_funnel.tex")
+    st = pd.read_csv(PROC / "graph_stats.csv")
+    g = st.groupby(["label", "subset"]).agg(n=("sha256", "size"), fail=("ok", lambda s: int((s == 0).sum())),
+                                           parse=("parse_error", "sum"), empty=("n_nodes", lambda s: int((s == 0).sum())),
+                                           trunc=("truncated", "sum"), med=("n_nodes", "median"),
+                                           p90=("n_nodes", lambda s: s.quantile(.9)), secs=("secs", "mean"))
+    S["extraction"] = json.loads(g.reset_index().to_json(orient="records"))
+    latex_table([[a, b] + [f"{v:.0f}" if k != "secs" else f"{v*1000:.1f}" for k, v in r.items()] for (a, b), r in g.iterrows()],
+                ["Label", "Subset", "Files", "Crash", "Parse err.", "Empty ICFG", "Truncated", "Median nodes",
+                 "P90 nodes", "ms/file"], TAB / "extraction.tex")
+    ws = st[(st.label == "webshell") & (st.subset == "paper")]
+    fig, ax = plt.subplots(figsize=(4.5, 3))
+    ax.hist(ws.n_nodes.clip(upper=2000), bins=50)
+    ax.set_xlabel("# PHP statements in pruned ICFG (capped 2000)"); ax.set_ylabel("# webshell files")
+    fig.tight_layout(); fig.savefig(FIG / "stmt_dist.pdf"); plt.close(fig)
+
+
+def error_taxonomy(S):
+    """Tag every test error of the best model (GAT) with machine-checkable causes."""
+    feats = pd.read_csv(PROC / "graph_feats.csv").set_index("sha256")
+    man = pd.read_csv(DATA / "manifests/manifest_all.csv").drop_duplicates("sha256").set_index("sha256")
+    dyn = {}
+    want = set()
+    for pat in ("t4_gat_s?", "clean_gat_s?", "cross_gat_s?"):
+        for r in load(pat):
+            for s, y, p in zip(r["pred"]["sha"], r["pred"]["y"], r["pred"]["p"]):
+                if (p >= 0.5) != y:
+                    want.add(s)
+    for part in sorted((PROC / "icfg").glob("part-*.jsonl")):
+        for line in open(part):
+            if line[8:72] in want or json.loads(line)["id"] in want:
+                rr = json.loads(line)
+                raws = [n[1] for n in rr.get("nodes", [])]
+                dyn[rr["id"]] = dict(dyn_call=any(re.search(r"(^|[^\w>:])\$\w+\s*\(", x) for x in raws),
+                                     long_str=any(re.search(r"'[A-Za-z0-9+/=]{60,}", x) for x in raws),
+                                     superglobal=any("$_" in x for x in raws))
+
+    def tags(s, y):
+        f, d = feats.loc[s], dyn.get(s, {})
+        t = []
+        if f.n_nodes == 0:
+            t.append("empty ICFG")
+        if f.parse_error:
+            t.append("parse error (recovered)")
+        if f.truncated:
+            t.append("ICFG truncated at 2000 nodes")
+        if f.n_nodes and f.n_nodes < 5:
+            t.append("tiny ICFG (<5 statements)")
+        if y == 1:
+            if f.n_crit + f.n_obf == 0:
+                t.append("no risky built-in call" + (" (dynamic call $f())" if d.get("dyn_call") else ""))
+            if d.get("long_str"):
+                t.append("encoded payload string")
+            if not d.get("superglobal"):
+                t.append("no request input in ICFG")
+        else:
+            if f.n_crit:
+                t.append("benign uses critical call")
+            elif f.n_obf:
+                t.append("benign uses callback/eval-like call")
+            if d.get("superglobal"):
+                t.append("benign reads request input")
+        return t or ["no tag"]
+
+    out, rows = {}, []
+    for proto, pat in (("paper_random", "t4_gat_s?"), ("clean_group", "clean_gat_s?"), ("cross_source", "cross_gat_s?")):
+        c = {"FN": Counter(), "FP": Counter()}
+        n = {"FN": 0, "FP": 0}
+        src = {"FN": Counter(), "FP": Counter()}
+        for r in load(pat):
+            for s, y, p in zip(r["pred"]["sha"], r["pred"]["y"], r["pred"]["p"]):
+                if (p >= 0.5) == y:
+                    continue
+                k = "FN" if y == 1 else "FP"
+                n[k] += 1
+                src[k][man.loc[s, "origin"] if k == "FN" else man.loc[s, "source"]] += 1
+                for t in tags(s, y):
+                    c[k][t] += 1
+        out[proto] = dict(n=n, tags={k: dict(v.most_common()) for k, v in c.items()},
+                          sources={k: dict(v.most_common(6)) for k, v in src.items()})
+        for k in ("FN", "FP"):
+            for t, v in c[k].most_common(8):
+                rows.append([proto.replace("_", r"\_"), k, t.replace("$", r"\$").replace("_", r"\_"), str(v),
+                             f"{100 * v / max(n[k], 1):.0f}\\%"])
+    latex_table(rows, ["Protocol", "Error", "Tag (non-exclusive)", "Count (5 seeds)", "Share"], TAB / "errors.tex")
+    S["errors"] = out
+
+
+def confusion(S):
+    fig, axes = plt.subplots(1, 3, figsize=(10, 3))
+    for ax, (title, pat) in zip(axes, [("paper split", "t4_gat_s0"), ("clean split", "clean_gat_s0"),
+                                       ("cross-source", "cross_gat_s0")]):
+        runs = load(pat)
+        if not runs:
+            continue
+        t = runs[0]["test"]
+        M = np.array([[t["tn"], t["fp"]], [t["fn"], t["tp"]]])
+        S["confusion"][title] = M.tolist()
+        ax.imshow(M, cmap="Blues")
+        for i in range(2):
+            for j in range(2):
+                ax.text(j, i, str(M[i, j]), ha="center", va="center", color="black")
+        ax.set_xticks([0, 1], ["pred benign", "pred webshell"]); ax.set_yticks([0, 1], ["benign", "webshell"])
+        ax.set_title(f"GAT, {title}, seed 0", fontsize=9)
+    fig.tight_layout(); fig.savefig(FIG / "confusion.pdf"); plt.close(fig)
+
+
+def timing(S):
+    st = pd.read_csv(PROC / "graph_stats.csv")
+    S["timing"] = dict(extract_ms_mean=float(st.secs.mean() * 1000), extract_ms_p95=float(st.secs.quantile(.95) * 1000))
+
+
+def main():
+    FIG.mkdir(parents=True, exist_ok=True)
+    S = defaultdict(dict)
+    for fn in (leakage_and_data, table2, table4, ablation, sweeps, protocols, per_source_fpr, confusion, error_taxonomy, timing):
+        try:
+            fn(S)
+        except Exception as e:  # keep producing the other artefacts while runs are still in progress
+            print(f"[{fn.__name__}] skipped: {type(e).__name__}: {e}")
+    (RESULTS / "summary.json").write_text(json.dumps(S, indent=1, default=float))
+    print("wrote", RESULTS / "summary.json")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,57 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=2.1cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage{microtype}
+\usepackage{booktabs,multirow,tabularx,makecell,threeparttable}
+\usepackage{graphicx,float}
+\usepackage{caption,subcaption}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,calc}
+\usepackage[colorlinks=true,linkcolor=MidnightBlue,citecolor=MidnightBlue,urlcolor=MidnightBlue]{hyperref}
+\usepackage{cleveref}
+
+\setlist{nosep,leftmargin=*}
+\captionsetup{font=small,labelfont=bf}
+\lstset{basicstyle=\ttfamily\footnotesize,columns=fullflexible,breaklines=true,frame=single,
+        framerule=0.3pt,xleftmargin=2pt,xrightmargin=2pt}
+\newcommand{\paperref}{\cite{feng2024glareshell}}
+\newcommand{\pr}{\texttt{paper\_random}}
+\newcommand{\cg}{\texttt{clean\_group}}
+\newcommand{\xs}{\texttt{cross\_source}}
+\newcommand{\repro}[1]{\textcolor{ForestGreen}{\textbf{#1}}}
+\newcommand{\notrepro}[1]{\textcolor{BrickRed}{\textbf{#1}}}
+\newcommand{\improved}[1]{\textcolor{RoyalBlue}{\textbf{#1}}}
+\newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
+
+\title{\textbf{Reproducing GlareShell:\\ Graph Learning-based PHP Webshell Detection, Revisited under Leakage Control}\\[4pt]
+\large NT230 -- Malware analysis course project}
+\author{%
+  \TODO{Team name} \\
+  \TODO{Member 1 -- Student ID} \quad \TODO{Member 2 -- Student ID} \quad \TODO{Member 3 -- Student ID}\\
+  Instructor: \TODO{Instructor name}}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\input{sections/abstract}
+\input{sections/intro}
+\input{sections/background}
+\input{sections/method}
+\input{sections/dataset}
+\input{sections/setup}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/ethics}
+\input{sections/conclusion}
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\appendix
+\input{sections/appendix}
+\end{document}

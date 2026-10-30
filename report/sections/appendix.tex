@@ -1,0 +1,38 @@
+\section{Hyper-parameters}\label{app:hyper}
+\begin{table}[H]
+\centering\footnotesize
+\caption{Hyper-parameters. ``Paper'' = value stated in~\paperref; everything else is our choice.}
+\label{tab:hyper}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Item & Value & Source \\ \midrule
+Split & 8:1:1 stratified (\pr), cluster-grouped (\cg) & paper / ours \\
+Embedding dim / window & 100 / 5 (sweeps 20--120 / 2--7) & paper (default, Fig.~6--7) \\
+Embedding epochs & gensim default (5; Doc2Vec 10), GloVe 25 & default \\
+Table 2 GNN & GCN, 2 layers, hidden 10, batch 10, lr $10^{-3}$ & paper (lr ours) \\
+Table 2 epochs & $\le$50, early stop on val.\ F1 (patience 10) & ours \\
+Table 3/4 GNN & 3 layers, lr $10^{-3}$, batch 256, $\le$120 epochs (patience 30) & paper (patience ours) \\
+Hidden & GCN 32, GIN 16, GAT 8 $\times$ 8 heads & paper \\
+Optimiser / loss & Adam / cross-entropy, threshold 0.5 & ours \\
+Pooling & mean (Eq.~6), then MLP $d\to d\to 2$ & paper / ours \\
+ICFG cap & 2,000 statements & ours \\
+Near-dup threshold & Jaccard $\ge 0.8$ on normalised statement sets & ours \\
+Seeds & 0--4 (sweeps 0--2) & ours \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Mapping to the course rubric}
+\begin{table}[H]
+\centering\footnotesize
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+Criterion & Where \\ \midrule
+1. Malware object \& RQ & \Cref{sec:background}: concept map (\Cref{fig:concept}), families, threat model, RQ1--4, labels, feature table, confusable cases \\
+2. Reproduction & \Cref{sec:method}, \Cref{sec:repro}: code in \texttt{src/}, environment, comparison tables with the paper, ablation, sweeps, 5 seeds \\
+3. Dataset & \Cref{sec:dataset}, \texttt{docs/DATA\_CARD.md}, \texttt{LABEL\_GUIDE.md}, \texttt{SCHEMA.md}, manifest, cluster file, splits, fetch/clean scripts \\
+4. Experiments \& critique & \Cref{sec:results,sec:discussion}: P/R/F1/FPR with CIs, confusion matrices, error taxonomy, cross-source evaluation, threats to validity \\
+5. Reproducibility \& ethics & \Cref{sec:ethics}, \texttt{README.md}, \texttt{Dockerfile}, checksums, \texttt{pack\_samples.sh} \\
+\bottomrule
+\end{tabularx}
+\end{table}

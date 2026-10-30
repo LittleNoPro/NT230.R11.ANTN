@@ -1,0 +1,113 @@
+\section{The malware object: PHP webshells}\label{sec:background}
+
+\subsection{What a webshell is and how it operates}
+A \emph{webshell} is a server-side script planted in the document root of a web server that gives a remote
+party interactive control of that server through ordinary HTTP requests (MITRE ATT\&CK T1505.003~\cite{mitre_t1505003}).
+It is a \emph{post-exploitation persistence} artefact: it does not compromise the server by itself but is
+dropped after an initial-access step (unrestricted file upload, LFI/RFI, SQL injection with
+\texttt{INTO OUTFILE}, a vulnerable plugin, stolen FTP/CMS credentials). Once present, the PHP interpreter
+executes it on every request to its URL, with the privileges of the web-server user.
+GlareShell~\paperref{} places this in an Industrial-Internet setting: the web server is the management and
+monitoring interface of industrial control systems, so a webshell is a pivot from the IT web tier towards
+the OT network.
+
+\Cref{fig:concept} summarises the concepts we use throughout the report. Webshells fall into a few
+\emph{families} that differ in size and in the evidence they leave in source code:
+\begin{itemize}
+  \item \textbf{One-line backdoors} (``China Chopper''-style): \verb|<?php @eval($_POST['x']);?>|. One statement;
+        the attacker's client sends the PHP payload in every request.
+  \item \textbf{Command shells}: pass request input to \texttt{system}/\texttt{exec}/\texttt{passthru}/\texttt{popen}/\verb|`backticks`|.
+  \item \textbf{Management kits} (c99, r57, WSO, b374k): thousands of lines with file manager, upload, SQL client,
+        port binding, mail bomber, self-removal. Most of their code is ordinary UI code.
+  \item \textbf{Obfuscated loaders}: hide the payload in an encoded string
+        (\verb|eval(gzinflate(base64_decode('...')))|) or build the dangerous function name at run time
+        (\verb|$f='as'.'sert'; $f($_REQUEST[k]);|), or route it through callbacks
+        (\verb|array_map($_GET['f'], [$_GET['a']])|, \verb|preg_replace('/.*/e', ...)|).
+  \item \textbf{Uploaders / file managers}: no command execution at all -- only \texttt{move\_uploaded\_file},
+        \texttt{fopen}/\texttt{fwrite}; they are used to stage the next payload.
+\end{itemize}
+Variants inside a family usually differ only by password, banner, language of the UI or layout, which is why
+public collections are full of near-duplicates (\Cref{sec:dataset}).
+
+\begin{figure}[t]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[
+  box/.style={draw,rounded corners=2pt,align=center,font=\footnotesize,inner sep=3pt,minimum height=7mm},
+  att/.style={box,fill=red!8}, obs/.style={box,fill=blue!8}, det/.style={box,fill=green!10}, conf/.style={box,fill=orange!12},
+  ->,>=Stealth]
+\node[att] (vuln) {Initial access\\upload / LFI / SQLi /\\stolen credentials};
+\node[att,right=8mm of vuln] (drop) {Webshell file\\written to web root};
+\node[att,right=8mm of drop] (req) {Attacker HTTP\\request (\texttt{\$\_POST}, cookie,\\header)};
+\node[att,right=8mm of req] (act) {Command / code exec,\\file ops, DB access,\\pivot to OT network};
+\draw (vuln)--(drop); \draw (drop)--(req); \draw (req)--(act);
+\node[obs,below=10mm of drop] (fs) {\textbf{Observation surface}\\new/modified \texttt{.php} file\\(file-system monitor)};
+\draw[dashed] (drop)--(fs);
+\node[det,right=8mm of fs] (icfg) {Static view: ICFG of\\PHP statements\\(normalised + risk level)};
+\node[det,right=8mm of icfg] (gnn) {GNN classifier\\$\rightarrow$ allow / block};
+\draw (fs)--(icfg); \draw (icfg)--(gnn);
+\node[box,below=8mm of fs,fill=gray!8] (fam) {Families: one-liner $\cdot$ command shell $\cdot$ kit $\cdot$\\obfuscated loader $\cdot$ uploader};
+\node[conf,below=8mm of icfg,xshift=14mm] (conf) {Confusable: benign code with exec/callbacks;\\webshells with only dynamic calls or hidden payloads};
+\draw[dotted] (fam)--(fs); \draw[dotted] (conf)--(icfg);
+\node[box,left=8mm of fs,fill=gray!8] (evade) {Evasion: string building,\\encoding, callbacks,\\short tags, padding};
+\draw[dotted] (evade)--(fs);
+\end{tikzpicture}}
+\caption{Concept map: attack chain (red), what the detector observes (blue), the detector (green) and
+the sources of confusion we analyse (orange).}
+\label{fig:concept}
+\end{figure}
+
+\subsection{Threat model}
+\begin{itemize}
+  \item \textbf{Assets}: the web server of an Industrial-Internet management plane and the networks it can reach.
+  \item \textbf{Attacker}: remote, already able to write a file into the web root; knows that a static detector may be
+        deployed and can obfuscate, but (in the paper's setting) does not adapt to the specific model.
+  \item \textbf{Defender's observation}: the PHP source file at creation/modification time. No execution traces,
+        no HTTP logs, no file-system context (path, owner, neighbouring files).
+  \item \textbf{Decision}: binary, per file, before the file is executed; a false positive blocks a legitimate
+        deployment, a false negative leaves a backdoor.
+  \item \textbf{Out of scope}: memory-resident shells, non-PHP shells, adaptive adversarial attacks against the model,
+        legitimately deployed admin tools.
+\end{itemize}
+
+\subsection{Research questions}
+\begin{description}
+  \item[RQ1 (reproduction)] Can GlareShell's reported detection performance (Tables 2 and 4 of~\paperref{}) be
+        reproduced from the paper's description, using the paper's data sources and protocol?
+  \item[RQ2 (components)] Do statement normalisation, risk weights, the choice of embedding and the choice of
+        GNN contribute as claimed (Fig.~6--8 of~\paperref{})?
+  \item[RQ3 (validity)] How much of the performance is explained by near-duplicate leakage between train and test
+        and by the benign/webshell source confound?
+  \item[RQ4 (generalisation)] How does the detector behave on benign projects and webshell collections that were
+        not part of the training sources, i.e.\ the false-positive rate a deployment would see?
+\end{description}
+
+\subsection{Labels and the features the detector sees}
+A file is \emph{webshell} if it comes from a public webshell collection and \emph{benign} if it comes from a
+pinned release of a widely deployed project; labels are source-level (full guide in
+\texttt{docs/LABEL\_GUIDE.md}). \Cref{tab:features} lists what GlareShell actually observes for each file.
+
+\begin{table}[t]
+\centering\small
+\caption{Feature view of GlareShell (per node of the ICFG unless stated).}
+\label{tab:features}
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+Feature & Content & Malicious signal it can carry \\ \midrule
+Statement text & One PHP statement / branch condition, pretty-printed & API used, request input, payload strings \\
+Normalisation & local variables $\to$ \texttt{\$local}, user functions/methods $\to$ \texttt{user\_define}, numbers $\to$ \texttt{im} & removes names/passwords, keeps built-ins and strings \\
+Embedding & 100-d vector of the normalised statement (W2V / FastText / GloVe / D2V) & co-occurrence of risky statements \\
+Risk level & one-hot: 2 = \emph{critical} (\texttt{system, exec, shell\_exec, passthru, popen, proc\_open, pcntl\_exec}, backticks); 1 = \emph{obfuscated} (\texttt{eval, assert, preg\_replace, create\_function, call\_user\_func*}, array/sort callbacks, \dots); 0 = normal & explicit dangerous capability \\
+Edges & intra-procedural control flow + call/return edges between functions (ICFG) & how input reaches the sink \\
+Graph & mean of final node states (Eq.~6 of~\paperref{}) & whole-file behaviour \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\paragraph{Confusable cases.} The feature view predicts where the detector should fail, and we test these
+predictions in \Cref{sec:errors}:
+(i) benign framework code is full of \emph{obfuscated}-level calls (\texttt{call\_user\_func\_array} for dispatch,
+\texttt{usort} with closures, \texttt{preg\_replace\_callback}) and installers/updaters call \texttt{exec};
+(ii) webshells that never call a dangerous built-in by name (dynamic calls \verb|$f(...)|, uploaders) get no
+risk signal; (iii) payloads inside encoded strings are a single opaque statement;
+(iv) the static ICFG is incomplete for reflection, variable functions and \texttt{include} of runtime paths.

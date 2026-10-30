@@ -1,0 +1,21 @@
+\section{Reproducibility, safety and ethics}\label{sec:ethics}
+\paragraph{Handling live malware.} The corpus contains working webshells. Our rules (also in \texttt{README.md}):
+samples are \emph{only parsed} by PHP-Parser or read as bytes -- no script includes, evaluates or serves them, and
+the extractor is invoked on lists of paths, never inside a web server; \texttt{samples/} and every derived file that
+contains code fragments (\texttt{data/processed/}) are git-ignored; the Docker image runs with
+\texttt{--network none} and the samples mounted read-only; for hand-over to graders, \texttt{scripts/pack\_samples.sh}
+builds a password-protected archive (password \texttt{infected}, the customary convention) with a SHA-256 checksum,
+to be shared privately. The development VM can be rolled back from a snapshot after use. The repository publishes
+only hashes, paths, aggregate statistics and code. We do not release any new webshell, payload or evasion
+technique; the evasion classes we discuss are already documented in the public collections.
+
+\paragraph{Licenses.} Benign projects are GPL/LGPL/MIT and are re-fetched from upstream rather than redistributed.
+Several webshell collections state no license; we reference them by URL and commit only.
+
+\paragraph{Reproducibility artefacts.}
+\texttt{scripts/fetch\_sources.sh} (pinned revisions), \texttt{scripts/setup\_tools.sh} (LChecker @c8a3646,
+PHP-Parser v4.19.4, no composer needed), \texttt{requirements.txt} (exact versions), \texttt{Dockerfile},
+\texttt{scripts/reproduce.sh} (end-to-end), the manifest with SHA-256 of every sample (integrity check), the splits
+as JSON, every run's configuration, metrics and per-file predictions as JSON (\texttt{results/runs/}), and
+\texttt{src/analyze.py}, which regenerates every table and figure of this report. Total runtime on our laptop:
+\TODO{hours}.

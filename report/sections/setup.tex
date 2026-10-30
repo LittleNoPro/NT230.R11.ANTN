@@ -1,0 +1,28 @@
+\section{Experimental setup}\label{sec:setup}
+\paragraph{Hardware/software.} Intel CPU (16 threads), 7.6\,GB RAM, NVIDIA RTX~3050 Laptop 6\,GB, WSL2 Ubuntu,
+PHP~8.3.6, Python~3.11, PyTorch~2.4.1 (CUDA 12.1), PyTorch Geometric~2.6.1, Gensim~4.3.3 (paper: Xeon E5-2620 for
+extraction, i7-12700 + RTX~3060 for training).
+
+\paragraph{Metrics.} Positive class = webshell. We report the paper's Precision, Recall, TNR, Accuracy, F1
+(Eq.~7--11) plus the false-positive rate FPR = 1 $-$ TNR, which matters most in deployment because benign
+uploads vastly outnumber webshells. Every configuration is run with \textbf{5 seeds} (split, embedding and
+GNN initialisation all depend on the seed; sweeps use 3 seeds); we report mean $\pm$ half-width of the 95\%
+Student-$t$ interval. For \xs{} we additionally give 95\% Wilson intervals on the pooled test counts of seed~0.
+
+\paragraph{Experiments.}
+\begin{enumerate}
+  \item \textbf{Table 2 replication}: 6 embeddings $\times$ 5 seeds, 2-layer GCN, hidden 10, batch 10 (\pr).
+  \item \textbf{Fig.~8 replication}: ablation \emph{none} (raw statements, no risk), \emph{n} (normalised),
+        \emph{n+w} (normalised + risk), FastText + GCN (\pr) and FastText + GAT (\cg).
+  \item \textbf{Fig.~6/7 replication}: embedding dimension 20--120 and context window 2--7 (FastText + GCN, 3 seeds).
+  \item \textbf{Table 4 replication}: GCN/GIN/GAT with the Table~3 optimum, FastText (\pr).
+  \item \textbf{Beyond the paper}: GCN and GAT on \cg{} and \xs; baselines on all protocols.
+\end{enumerate}
+
+\paragraph{Baselines} (\texttt{src/baselines.py}, same splits):
+\textbf{TF-IDF + LR / XGBoost} on lexical PHP tokens of the raw file (1--2-grams, hashed to $2^{18}$ features;
+$\chi^2$ top-5k for XGBoost) -- the classic text approach of prior work~\cite{feng2024glareshell};
+\textbf{rules} derived from GlareShell's own risk mechanism (webshell iff a critical call / any risky call / a risky
+call and request input); and \textbf{graph-statistics + XGBoost}: 12 numbers per ICFG (size, density,
+\#critical, \#obfuscated, unique-statement ratio, parse error, truncated, \dots) and \emph{no code semantics}. If this
+probe performs well, part of the task is solvable from artefacts of the corpus rather than from behaviour.

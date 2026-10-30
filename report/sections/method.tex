@@ -1,0 +1,81 @@
+\section{GlareShell and our re-implementation}\label{sec:method}
+
+\subsection{The original pipeline}
+GlareShell~\paperref{} has three components.
+\textbf{(1) ICFG extractor}: LChecker~\cite{li2021lchecker} (built on PHP-Parser~\cite{phpparser}) builds one CFG per
+function/method; Algorithm~1 of the paper connects them through call relations into an interprocedural CFG
+whose nodes are PHP statements; ``meaningless'' statements (constant \texttt{echo}, variable initialisation)
+are pruned.
+\textbf{(2) Node attribution generator}: statements are normalised (user functions $\to$ \texttt{user-define},
+local variables $\to$ \texttt{local}, numbers $\to$ \texttt{im}) and embedded with one of six word-embedding
+methods (Word2Vec CBOW/Skip-gram~\cite{mikolov2013word2vec}, FastText~\cite{bojanowski2017fasttext},
+GloVe~\cite{pennington2014glove}, Doc2Vec PV-DM/PV-DBOW~\cite{le2014doc2vec}); a three-level risk weight is
+concatenated.
+\textbf{(3) GNN classifier}: GCN~\cite{kipf2017gcn}, GAT~\cite{velickovic2018gat} or GIN~\cite{xu2019gin},
+mean pooling and an MLP. The paper reports FastText as best embedding (F1 0.9454 with a small GCN) and GAT as
+best GNN (F1 0.9887) on 3,104 webshells / 10,375 benign files split randomly 8:1:1.
+Neither code nor data is published.
+
+\subsection{Our implementation}
+\Cref{fig:pipeline} shows the reproduction pipeline; every box is a script in \texttt{src/}.
+
+\begin{figure}[t]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[box/.style={draw,rounded corners=2pt,align=center,font=\footnotesize,inner sep=3pt,minimum height=9mm,fill=gray!6},->,>=Stealth]
+\node[box] (a) {\texttt{fetch\_sources.sh}\\15 repos, pinned};
+\node[box,right=5mm of a] (b) {\texttt{build\_manifest.py}\\hashes, provenance,\\2-level dedup};
+\node[box,right=5mm of b] (c) {\texttt{extract\_icfg.php}\\LChecker CFG + Alg.~1\\prune, normalise, risk};
+\node[box,right=5mm of c] (d) {\texttt{splits.py}\\MinHash near-dup\\3 protocols $\times$ 5 seeds};
+\node[box,right=5mm of d] (e) {\texttt{embeddings.py}\\6 methods,\\train split only};
+\node[box,right=5mm of e] (f) {\texttt{train\_gnn.py}\\GCN/GIN/GAT\\+ baselines};
+\node[box,right=5mm of f] (g) {\texttt{analyze.py}\\tables, CIs,\\error taxonomy};
+\draw (a)--(b); \draw (b)--(c); \draw (c)--(d); \draw (d)--(e); \draw (e)--(f); \draw (f)--(g);
+\end{tikzpicture}}
+\caption{Reproduction pipeline. Samples are only parsed; nothing is executed.}
+\label{fig:pipeline}
+\end{figure}
+
+\paragraph{ICFG extraction.}
+We tried LChecker first, as the paper did. Its \emph{analysis} (\texttt{Main.php}) is a taint analysis for loose
+comparisons and does not output graphs, but its CFG builder (\texttt{ConstructCFG.php}) is reusable as a library.
+We therefore call LChecker's \texttt{ConstructCFG}, \texttt{ConstructFunctionCFG} and \texttt{ConstructClassCFG}
+unchanged and implement the rest of the paper on top (\texttt{src/php/extract\_icfg.php}, 400 lines):
+\begin{enumerate}
+  \item \textbf{Algorithm 1}: lower the main-script CFG into a node/edge list; for every statement, resolve calls to
+        functions, methods (by name, $\le$3 candidates), constructors and closures defined in the same file, lower the
+        callee CFG once and add a call edge (site $\to$ callee entry) and a return edge (callee exit $\to$ site).
+        Dynamic calls (\verb|$f()|) cannot be resolved statically -- as in the paper.
+  \item \textbf{Pruning}: constant \texttt{echo}/inline HTML and assignments of constants to variables are removed;
+        their predecessors are linked to their successors so the graph stays connected.
+  \item \textbf{Normalisation}: applied on a copy of the AST (not on text), so string literals keep their content;
+        a function is ``user-defined'' if it is not a built-in of PHP~8.3 or of a common extension (prefix list).
+  \item \textbf{Risk level}: computed on the original AST from the called built-ins (\Cref{tab:features}).
+\end{enumerate}
+LChecker is a research prototype written for PHP~7 and PHP-Parser~4.3. Applying it to this corpus revealed four
+problems that the paper does not mention and that we had to fix to obtain meaningful graphs:
+\begin{itemize}
+  \item it \emph{silently skips} \texttt{namespace}, \texttt{try/catch} and \texttt{declare} blocks and functions declared
+        inside other statements. Every PSR-style framework file is wrapped in a namespace, so vanilla LChecker yields
+        empty graphs for most of Laravel/Drupal -- a perfect label leak. We flatten these blocks before CFG construction;
+  \item a \texttt{for} loop's condition is stored as a PHP array, which crashes pretty-printing (854 files); we keep its last
+        expression;
+  \item PHP~8.3 ships with \texttt{short\_open\_tag=Off}, so files written with bare \verb|<?| tags parse as HTML. This
+        affected 208 webshells and \emph{zero} benign files; we parse with \texttt{short\_open\_tag=On};
+  \item 2 files crash the PHP interpreter (segfault on deeply nested expressions); they are kept as empty graphs.
+\end{itemize}
+We cap an ICFG at 2,000 statements to bound memory (\Cref{tab:extraction}).
+
+\paragraph{Embeddings and GNNs.}
+Gensim~4.3.3 provides Word2Vec, FastText and Doc2Vec with default settings (dimension 100, window 5, 5 epochs,
+\texttt{min\_count}=1), except FastText's hash-bucket count (200k instead of 2M, for RAM) and PV-DBOW's
+\texttt{dbow\_words}=1 (otherwise the statement vectors are never trained). GloVe is our own PyTorch implementation
+(x\textsubscript{max}=100, $\alpha$=0.75, 25 AdaGrad epochs) because \texttt{glove-python} no longer installs.
+Each file's statements in emission order form one ``sentence''. \textbf{Embeddings are trained only on the training
+files of each split and seed} (the paper does not say; training them on all files would leak test statements).
+Unknown statements get a zero vector, except for FastText which composes them from character n-grams.
+GNNs are implemented with PyTorch Geometric~2.6.1 following Eq.~(3)--(6) of the paper; edges are made undirected;
+the node attribute is \([\text{embedding} \,\|\, \text{one-hot risk}]\).
+\Cref{tab:hyper} (appendix) lists all hyper-parameters; they follow the paper where it gives values (Table~2 setting:
+2-layer GCN, hidden 10, batch 10; Table~3 optimum: 3 layers, lr $10^{-3}$, batch 256, 120 epochs, hidden 32/8$\times$8 heads/16).
+Model selection uses the validation F1 (early stopping); the paper does not describe its selection.
