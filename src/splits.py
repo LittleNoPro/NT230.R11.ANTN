@@ -139,5 +139,40 @@ def main():
               {k: len(v) for k, v in sp2.items()})
 
 
+# leave-one-collection-out: webshells whose earliest public source is collection X form the test set
+ORIGINS = {"tennc": "tennc__webshell", "bartblaze": "bartblaze__PHP-backdoors", "xl7dev": "xl7dev__WebShell"}
+
+
+def origin_splits():
+    """loo_<origin>_s<seed>: benign as in clean_group; test webshells = origin X; train/val webshells =
+    all other clean webshells minus every near-duplicate cluster that contains a test file."""
+    man = pd.read_csv(DATA / "manifests/manifest_all.csv", dtype={"first_seen": str})
+    man = man[man.keep_exact == 1].drop_duplicates("sha256").set_index("sha256")
+    cl = pd.read_csv(DATA / "manifests/clusters.csv").drop_duplicates("sha256").set_index("sha256").cluster
+    for seed in SEEDS:
+        cg = json.load(open(SPLITS / f"clean_group_s{seed}.json"))
+        allk = cg["train"] + cg["val"] + cg["test"]
+        lab = man.loc[allk, "label"]
+        ws = lab.index[lab == "webshell"]
+        ben = {k: [s for s in cg[k] if man.at[s, "label"] == "benign"] for k in ("train", "val", "test")}
+        for short, origin in ORIGINS.items():
+            test_ws = [s for s in ws if man.at[s, "origin"] == origin]
+            bad = set(cl.loc[test_ws])
+            rest = pd.DataFrame(dict(cluster=cl.loc[[s for s in ws if s not in set(test_ws)]]))
+            rest = rest[~rest.cluster.isin(bad)]
+            rng = np.random.default_rng(seed)
+            cls = rng.permutation(rest.cluster.unique())
+            val_cl = set(cls[: max(1, len(cls) // 9)])
+            sp = {"train": ben["train"] + rest.index[~rest.cluster.isin(val_cl)].tolist(),
+                  "val": ben["val"] + rest.index[rest.cluster.isin(val_cl)].tolist(),
+                  "test": ben["test"] + test_ws}
+            json.dump(sp, open(SPLITS / f"loo_{short}_s{seed}.json", "w"))
+            if seed == 0:
+                print(f"loo_{short}: test webshells {len(test_ws)}, test benign {len(ben['test'])}, "
+                      f"train webshells {len(rest) - len(rest[rest.cluster.isin(val_cl)])}, "
+                      f"dropped (same cluster as test) {len(ws) - len(test_ws) - len(rest)}")
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+    origin_splits() if sys.argv[1:] == ["origin"] else main()

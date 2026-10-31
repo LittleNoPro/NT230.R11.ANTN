@@ -320,6 +320,110 @@ def confusion(S):
     fig.tight_layout(); fig.savefig(FIG / "confusion.pdf"); plt.close(fig)
 
 
+def _preds(pat):
+    """seed -> DataFrame(sha, y, p) for the runs matching pat."""
+    out = {}
+    for r in load(pat):
+        out[r["cfg"].get("seed", 0)] = pd.DataFrame(dict(sha=r["pred"]["sha"], y=r["pred"]["y"], p=r["pred"]["p"])).set_index("sha")
+    return out
+
+
+def _bl(split, name):
+    return f"bl_{split}_{name}_s?"
+
+
+def significance(S):
+    """Paired comparisons on identical test sets: F1 difference over seeds (paired t) + exact McNemar per seed."""
+    from scipy import stats
+    comps = [("paper_random", "GAT vs GCN (Table 4)", "t4_gat_s?", "t4_gcn_s?"),
+             ("paper_random", "GAT vs GIN (Table 4)", "t4_gat_s?", "t4_gin_s?"),
+             ("paper_random", "FastText vs D2V-w (Table 2)", "t2_fasttext_s?", "t2_d2v_w_s?"),
+             ("paper_random", "n+w vs none (GCN, Fig. 8)", "t2_fasttext_s?", "abl_none_s?"),
+             ("clean_group", "n+w vs none (GAT, Fig. 8)", "clean_gat_s?", "clean_abl_none_s?"),
+             ("paper_random", "GAT vs TF-IDF + LR", "t4_gat_s?", _bl("paper_random", "tfidf_lr")),
+             ("clean_group", "GAT vs TF-IDF + LR", "clean_gat_s?", _bl("clean_group", "tfidf_lr")),
+             ("cross_source", "GAT vs TF-IDF + LR", "cross_gat_s?", _bl("cross_source", "tfidf_lr"))]
+    rows, out = [], {}
+    for split, name, pa, pb in comps:
+        A, B = _preds(pa), _preds(pb)
+        seeds = sorted(set(A) & set(B))
+        if len(seeds) < 2:
+            continue
+        d, sig, fa, fb = [], 0, [], []
+        for sd in seeds:
+            a, b = A[sd], B[sd].loc[A[sd].index]
+            ya, yb = (a.p >= .5).astype(int), (b.p >= .5).astype(int)
+            f_a, f_b = metrics(a.y, ya)["f1"], metrics(a.y, yb)["f1"]
+            fa.append(f_a); fb.append(f_b); d.append(f_a - f_b)
+            ca, cb = ya == a.y, yb == a.y
+            n01, n10 = int((ca & ~cb).sum()), int((~ca & cb).sum())  # exact McNemar = binomial test on discordant pairs
+            sig += n01 + n10 > 0 and stats.binomtest(n01, n01 + n10, 0.5).pvalue < 0.05
+        m, h = mean_ci(d)
+        pv = float(stats.ttest_rel(fa, fb).pvalue) if np.std(d) > 0 else 1.0
+        out[f"{split}: {name}"] = dict(diff=(m, h), p_paired_t=pv, mcnemar_sig=int(sig), n=len(seeds))
+        rows.append([split.replace("_", r"\_"), name, f"{m:+.4f}$\\pm${h:.4f}", f"{pv:.3f}", f"{sig}/{len(seeds)}",
+                     "yes" if (pv < 0.05 and abs(m) > 0) else "no"])
+    latex_table(rows, ["Protocol", "Comparison (A vs B)", r"$\Delta$F1 (A$-$B)", "paired-$t$ $p$", "McNemar $p<.05$",
+                       "Significant"], TAB / "significance.tex", n_text=2)
+    S["significance"] = out
+
+
+def operating_points(S):
+    """ROC/PR summaries per seed and recall at fixed false-positive budgets (test-set oracle thresholds)."""
+    from sklearn.metrics import average_precision_score, roc_auc_score, roc_curve
+    models = [("GlareShell GAT", {"paper_random": "t4_gat_s?", "clean_group": "clean_gat_s?", "cross_source": "cross_gat_s?"}),
+              ("GlareShell GCN", {"paper_random": "t4_gcn_s?", "clean_group": "clean_gcn_s?", "cross_source": "cross_gcn_s?"})]
+    for b in ("tfidf_lr", "tfidf_xgb", "struct_xgb"):
+        models.append((NAMES[b], {sp: _bl(sp, b) for sp in ("paper_random", "clean_group", "cross_source")}))
+    rows, out = [], {}
+    fig, axes = plt.subplots(1, 2, figsize=(9, 3.3))
+    for name, pats in models:
+        out[name] = {}
+        for sp in ("clean_group", "cross_source"):
+            P = _preds(pats[sp])
+            if not P:
+                continue
+            auc, ap, r01, r1 = [], [], [], []
+            for sd, d in sorted(P.items()):
+                auc.append(roc_auc_score(d.y, d.p)); ap.append(average_precision_score(d.y, d.p))
+                fpr, tpr, _ = roc_curve(d.y, d.p)
+                r01.append(float(tpr[fpr <= 0.001].max())); r1.append(float(tpr[fpr <= 0.01].max()))
+                if sd == 0:
+                    ax = axes[0 if sp == "clean_group" else 1]
+                    ax.plot(np.maximum(fpr, 1e-5), tpr, label=name, lw=1.2)
+            a = dict(auc=mean_ci(auc), ap=mean_ci(ap), recall_fpr01=mean_ci(r01), recall_fpr1=mean_ci(r1))
+            out[name][sp] = a
+            rows.append([name, sp.replace("_", r"\_"), fmt(a["auc"]), fmt(a["ap"]), fmt(a["recall_fpr01"], 3), fmt(a["recall_fpr1"], 3)])
+    for ax, t in zip(axes, ("clean split", "cross-source (unseen projects)")):
+        ax.set_xscale("log"); ax.set_xlim(1e-4, 1); ax.set_ylim(0, 1.01); ax.grid(alpha=.3)
+        ax.set_xlabel("false-positive rate (log)"); ax.set_ylabel("true-positive rate"); ax.set_title(f"ROC, {t}, seed 0", fontsize=9)
+    axes[1].legend(fontsize=7, loc="lower right")
+    fig.tight_layout(); fig.savefig(FIG / "roc.pdf"); plt.close(fig)
+    latex_table(rows, ["Model", "Protocol", "ROC-AUC", "PR-AUC (AP)", "Recall @ FPR 0.1\\%", "Recall @ FPR 1\\%"],
+                TAB / "operating_points.tex", n_text=2)
+    S["operating_points"] = out
+
+
+def origin_loo(S):
+    """Leave-one-collection-out: recall on the held-out collection's webshells, FPR on clean benign test files."""
+    models = [("GlareShell GAT", "loo_{o}_gat_s?"), ("GlareShell GCN", "loo_{o}_gcn_s?")]
+    models += [(NAMES[b], "bl_loo_{o}_" + b + "_s?") for b in ("tfidf_lr", "tfidf_xgb", "struct_xgb", "rule_risk_input")]
+    rows, out = [], {}
+    for o, n_name in (("tennc", "tennc/webshell"), ("bartblaze", "bartblaze/PHP-backdoors"), ("xl7dev", "xl7dev/WebShell")):
+        out[o] = {}
+        for name, pat in models:
+            runs = load(pat.format(o=o))
+            if not runs:
+                continue
+            a = agg(runs)
+            out[o][name] = a
+            n_ws = runs[0]["test"]["tp"] + runs[0]["test"]["fn"]
+            rows.append([f"{n_name} ({n_ws})", name, fmt(a["recall"], 3), fmt(a["fpr"]), fmt(a["f1"])])
+    latex_table(rows, ["Held-out collection (\\#webshells)", "Model", "Recall (unseen collection)", "FPR", "F1"],
+                TAB / "origin_loo.tex", n_text=2)
+    S["origin_loo"] = out
+
+
 def timing(S):
     st = pd.read_csv(PROC / "graph_stats.csv")
     S["timing"] = dict(extract_ms_mean=float(st.secs.mean() * 1000), extract_ms_p95=float(st.secs.quantile(.95) * 1000))
@@ -328,7 +432,8 @@ def timing(S):
 def main():
     FIG.mkdir(parents=True, exist_ok=True)
     S = defaultdict(dict)
-    for fn in (leakage_and_data, table2, table4, ablation, sweeps, protocols, per_source_fpr, confusion, error_taxonomy, timing):
+    for fn in (leakage_and_data, table2, table4, ablation, sweeps, protocols, per_source_fpr, confusion, error_taxonomy,
+               significance, operating_points, origin_loo, timing):
         try:
             fn(S)
         except Exception as e:  # keep producing the other artefacts while runs are still in progress

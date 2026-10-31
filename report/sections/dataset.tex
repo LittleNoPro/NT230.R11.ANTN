@@ -78,8 +78,12 @@ already-seen families~\cite{allamanis2019duplication,arp2022dos}.
         shares a cluster with the paper sources: 9,091 benign files from four unseen projects and \textbf{only 18}
         unseen webshells. The latter is too small to estimate recall precisely (we give Wilson intervals); \xs{} is
         primarily a \emph{false-positive} stress test, which is the quantity that decides deployability.
+  \item[\texttt{loo\_<X>}] leave-one-collection-out: test webshells = all \cg{} webshells whose earliest public source
+        is collection $X$ (tennc: 222, bartblaze: 99, xl7dev: 77); every near-duplicate cluster containing a test
+        webshell is removed from train/validation; benign train/validation/test as in \cg. This measures recall on a
+        whole collection the model has never seen, with 4--12$\times$ more webshells than \xs.
 \end{description}
 Each protocol is instantiated with 5 seeds. We could not build a meaningful temporal split: git ``first-seen'' dates are upload dates, not
 malware dates -- all 2,917 Cyc1e183 files share one commit (2020-11-13, a single zip), 98\% of xl7dev and 86\% of
 BlackArch files share one day; only \texttt{tennc/webshell} has a spread history (100 distinct days, 2013--2023),
-and its files are mostly already inside the aggregate. Source-disjointness (\xs) is our substitute.
+and its files are mostly already inside the aggregate. Source-disjoint protocols (\xs{} and \texttt{loo}) are our substitute.

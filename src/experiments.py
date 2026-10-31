@@ -1,6 +1,6 @@
 """All GNN experiments. Resumable: a run whose results/runs/<name>.json exists is skipped.
 
-  python experiments.py table2 table4 ablation sweep clean cross
+  python experiments.py table2 table4 ablation sweep clean cross origin
 """
 import gc
 import sys
@@ -54,6 +54,12 @@ def jobs(group):
             for s in SEEDS:
                 yield f"cross_{g}_s{s}", ["--split", "cross_source", "--emb_split", "clean_group", "--emb", "fasttext",
                                           "--gnn", g, "--seed", str(s)] + T3[g] + T3_COMMON
+    if group == "origin":
+        for o in ("tennc", "bartblaze", "xl7dev"):
+            for g in ("gcn", "gat"):
+                for s in SEEDS:
+                    yield f"loo_{o}_{g}_s{s}", ["--split", f"loo_{o}", "--emb", "fasttext", "--gnn", g,
+                                                "--seed", str(s)] + T3[g] + T3_COMMON
 
 
 def main(groups):

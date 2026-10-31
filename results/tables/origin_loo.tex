@@ -1,0 +1,23 @@
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Held-out collection (\#webshells) & Model & Recall (unseen collection) & FPR & F1 \\ \midrule
+tennc/webshell (222) & GlareShell GAT & 0.950$\pm$0.020 & 0.0041$\pm$0.0036 & 0.9647$\pm$0.0098 \\
+tennc/webshell (222) & GlareShell GCN & 0.934$\pm$0.035 & 0.0044$\pm$0.0032 & 0.9556$\pm$0.0232 \\
+tennc/webshell (222) & TF-IDF + LR & 0.973$\pm$0.000 & 0.0010$\pm$0.0015 & 0.9841$\pm$0.0034 \\
+tennc/webshell (222) & TF-IDF + XGBoost & 0.978$\pm$0.012 & 0.0014$\pm$0.0007 & 0.9859$\pm$0.0059 \\
+tennc/webshell (222) & Graph-stats + XGBoost & 0.841$\pm$0.008 & 0.0183$\pm$0.0048 & 0.8728$\pm$0.0116 \\
+tennc/webshell (222) & Rule: risky call + request input & 0.536$\pm$0.000 & 0.0137$\pm$0.0044 & 0.6701$\pm$0.0087 \\
+bartblaze/PHP-backdoors (99) & GlareShell GAT & 0.954$\pm$0.007 & 0.0058$\pm$0.0035 & 0.9470$\pm$0.0181 \\
+bartblaze/PHP-backdoors (99) & GlareShell GCN & 0.943$\pm$0.011 & 0.0044$\pm$0.0040 & 0.9484$\pm$0.0155 \\
+bartblaze/PHP-backdoors (99) & TF-IDF + LR & 1.000$\pm$0.000 & 0.0014$\pm$0.0014 & 0.9930$\pm$0.0070 \\
+bartblaze/PHP-backdoors (99) & TF-IDF + XGBoost & 0.992$\pm$0.006 & 0.0015$\pm$0.0007 & 0.9879$\pm$0.0056 \\
+bartblaze/PHP-backdoors (99) & Graph-stats + XGBoost & 0.689$\pm$0.016 & 0.0162$\pm$0.0048 & 0.7415$\pm$0.0109 \\
+bartblaze/PHP-backdoors (99) & Rule: risky call + request input & 0.313$\pm$0.000 & 0.0137$\pm$0.0044 & 0.4302$\pm$0.0137 \\
+xl7dev/WebShell (77) & GlareShell GAT & 0.917$\pm$0.018 & 0.0035$\pm$0.0038 & 0.9341$\pm$0.0284 \\
+xl7dev/WebShell (77) & GlareShell GCN & 0.932$\pm$0.013 & 0.0048$\pm$0.0035 & 0.9339$\pm$0.0162 \\
+xl7dev/WebShell (77) & TF-IDF + LR & 1.000$\pm$0.000 & 0.0012$\pm$0.0013 & 0.9923$\pm$0.0086 \\
+xl7dev/WebShell (77) & TF-IDF + XGBoost & 0.995$\pm$0.009 & 0.0012$\pm$0.0005 & 0.9897$\pm$0.0072 \\
+xl7dev/WebShell (77) & Graph-stats + XGBoost & 0.873$\pm$0.013 & 0.0187$\pm$0.0055 & 0.8220$\pm$0.0335 \\
+xl7dev/WebShell (77) & Rule: risky call + request input & 0.636$\pm$0.000 & 0.0137$\pm$0.0044 & 0.6994$\pm$0.0229 \\
+\bottomrule
+\end{tabular}

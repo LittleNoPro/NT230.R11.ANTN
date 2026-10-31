@@ -16,9 +16,11 @@ Report: [`report/main.tex`](report/main.tex) → `report/main.pdf`.
 | GAT F1, cluster-disjoint split | — | 0.963 ± 0.008 |
 | GAT FPR, 4 unseen benign projects | — | 1.7% (0.4% in-distribution) |
 | Benign standalone scripts flagged (`tests/probe_benign`) | — | 10 / 12 |
+| GAT recall at 0.1% FPR, unseen projects (TF-IDF + LR) | — | 0.06 (0.64) |
+| GAT recall, leave-one-collection-out (TF-IDF + LR) | — | 0.92–0.95 (0.97–1.00) |
 
 Headline F1 is reproduced; the component claims (best GNN, dimension curve, normalisation/risk ablation) are not
-statistically supported, and the benchmark is largely separable by code population rather than behaviour.
+statistically supported (paired t / McNemar tests), and the benchmark is largely separable by code population rather than behaviour.
 
 ## ⚠️ Safety rules (read first)
 * The corpus contains **real, working webshells**. They are only **parsed** (PHP-Parser) and read as bytes.

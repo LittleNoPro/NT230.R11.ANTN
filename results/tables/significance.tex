@@ -1,0 +1,13 @@
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Protocol & Comparison (A vs B) & $\Delta$F1 (A$-$B) & paired-$t$ $p$ & McNemar $p<.05$ & Significant \\ \midrule
+paper\_random & GAT vs GCN (Table 4) & -0.0009$\pm$0.0087 & 0.790 & 0/5 & no \\
+paper\_random & GAT vs GIN (Table 4) & -0.0034$\pm$0.0123 & 0.479 & 1/5 & no \\
+paper\_random & FastText vs D2V-w (Table 2) & +0.0419$\pm$0.0226 & 0.007 & 5/5 & yes \\
+paper\_random & n+w vs none (GCN, Fig. 8) & +0.0040$\pm$0.0052 & 0.100 & 1/5 & no \\
+clean\_group & n+w vs none (GAT, Fig. 8) & -0.0104$\pm$0.0116 & 0.068 & 1/5 & no \\
+paper\_random & GAT vs TF-IDF + LR & -0.0174$\pm$0.0126 & 0.019 & 3/5 & yes \\
+clean\_group & GAT vs TF-IDF + LR & -0.0291$\pm$0.0100 & 0.001 & 4/5 & yes \\
+cross\_source & GAT vs TF-IDF + LR & -0.2994$\pm$0.0390 & 0.000 & 5/5 & yes \\
+\bottomrule
+\end{tabular}

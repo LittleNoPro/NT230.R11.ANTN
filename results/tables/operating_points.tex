@@ -1,0 +1,15 @@
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Model & Protocol & ROC-AUC & PR-AUC (AP) & Recall @ FPR 0.1\% & Recall @ FPR 1\% \\ \midrule
+GlareShell GAT & clean\_group & 0.9974$\pm$0.0016 & 0.9869$\pm$0.0050 & 0.921$\pm$0.053 & 0.964$\pm$0.011 \\
+GlareShell GAT & cross\_source & 0.9594$\pm$0.0244 & 0.1082$\pm$0.0344 & 0.056$\pm$0.098 & 0.589$\pm$0.115 \\
+GlareShell GCN & clean\_group & 0.9964$\pm$0.0023 & 0.9830$\pm$0.0087 & 0.829$\pm$0.180 & 0.956$\pm$0.011 \\
+GlareShell GCN & cross\_source & 0.9621$\pm$0.0129 & 0.1006$\pm$0.0197 & 0.033$\pm$0.062 & 0.500$\pm$0.049 \\
+TF-IDF + LR & clean\_group & 0.9999$\pm$0.0001 & 0.9997$\pm$0.0004 & 0.984$\pm$0.030 & 1.000$\pm$0.000 \\
+TF-IDF + LR & cross\_source & 0.9969$\pm$0.0006 & 0.6116$\pm$0.0202 & 0.644$\pm$0.079 & 0.889$\pm$0.000 \\
+TF-IDF + XGBoost & clean\_group & 1.0000$\pm$0.0000 & 0.9997$\pm$0.0003 & 0.985$\pm$0.017 & 1.000$\pm$0.000 \\
+TF-IDF + XGBoost & cross\_source & 0.9877$\pm$0.0021 & 0.6138$\pm$0.1259 & 0.733$\pm$0.076 & 0.889$\pm$0.049 \\
+Graph-stats + XGBoost & clean\_group & 0.9707$\pm$0.0080 & 0.9073$\pm$0.0201 & 0.555$\pm$0.064 & 0.686$\pm$0.050 \\
+Graph-stats + XGBoost & cross\_source & 0.7423$\pm$0.0232 & 0.0648$\pm$0.0154 & 0.078$\pm$0.038 & 0.256$\pm$0.079 \\
+\bottomrule
+\end{tabular}

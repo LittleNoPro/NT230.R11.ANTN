@@ -23,7 +23,8 @@ $\Delta$F1 = ours $-$ paper.}\label{tab:t2}
 \paragraph{GNN architectures (paper Table 4)}
 With FastText and the Table-3 hyper-parameters (\Cref{tab:t4}) all three GNNs reach F1 $\approx$ 0.98, again close
 to the paper (0.968--0.989). The paper's claim that \emph{GAT is the best architecture} is not reproduced: GCN
-(0.981 $\pm$ 0.008), GIN (0.983 $\pm$ 0.002) and GAT (0.980 $\pm$ 0.012) are statistically indistinguishable, and
+(0.981 $\pm$ 0.008), GIN (0.983 $\pm$ 0.002) and GAT (0.980 $\pm$ 0.012) are statistically indistinguishable
+(paired tests in \Cref{tab:signif}), and
 GAT has the largest seed variance. The Table-3 setting (3 layers, batch 256, up to 120 epochs) improves on the Table-2
 setting only marginally for GCN (0.981 vs.\ 0.977).
 
@@ -66,6 +67,19 @@ GNN has less to memorise, and the risk one-hot cannot compensate.
 \caption{Ablation of normalisation and risk weights on both protocols (cf.\ paper Fig.~8).}\label{fig:ablation}
 \end{figure*}
 
+\paragraph{Paired significance tests}
+Overlapping confidence intervals are only a heuristic, so \Cref{tab:signif} tests the key comparisons directly. Within a
+seed, all models see the identical test set, so we pair them: a paired $t$-test on the per-seed F1 difference, and an
+exact McNemar test on the per-file decisions of each seed. The tests confirm the verdicts above: GAT is not better than
+GCN ($p=0.79$) or GIN ($p=0.48$); normalisation and risk weights make no significant difference on either protocol
+($p=0.10$ and $0.07$); FastText is significantly better than the runner-up embedding ($p=0.007$, McNemar significant
+in 5/5 seeds); and TF-IDF + LR is significantly better than GAT on every protocol.
+
+\begin{table*}[!t]\centering\footnotesize
+\caption{Paired significance tests (5 seeds, same test files). ``Significant'': paired-$t$ $p<0.05$.}\label{tab:signif}
+\input{../results/tables/significance.tex}
+\end{table*}
+
 \subsection{Beyond the paper: leakage, baselines and generalisation (RQ3, RQ4)}\label{sec:beyond}
 
 \paragraph{Near-duplicate leakage}
@@ -105,10 +119,44 @@ that the jump is not a property of the projects alone but of what the GNN has le
 \input{../results/tables/per_source_fpr.tex}
 \end{table*}
 
+\paragraph{Threshold-free view and alarm budgets}
+F1 at a 0.5 threshold hides how the detectors rank files. \Cref{tab:oppoints} and \Cref{fig:roc} report ROC-AUC,
+average precision (AP) and the recall reachable when the false-positive rate is capped at 0.1\% or 1\% -- the budget a
+file-upload monitor can afford. The thresholds are chosen on the test set (an optimistic upper bound). On \cg{} all
+text and GNN models rank well (mean ROC-AUC 0.997 for GAT, 0.9999 for TF-IDF + LR). On unseen projects the GNNs collapse: with a 0.1\% alarm budget
+GAT recovers only 6\% of the unseen webshells (AP 0.11), whereas TF-IDF + LR keeps 64\% (AP 0.61). The ROC curves
+show that the GNNs' false positives on unseen projects are \emph{confident}: they sit above most webshells, so no
+threshold separates them.
+
+\begin{table*}[!t]\centering\footnotesize
+\caption{Ranking quality and recall at fixed false-positive budgets (5 seeds; thresholds chosen on the test set).}\label{tab:oppoints}
+\input{../results/tables/operating_points.tex}
+\end{table*}
+
+\begin{figure*}[!t]\centering
+\includegraphics[width=0.75\linewidth]{figures/roc.pdf}
+\caption{ROC curves (log FPR axis), seed 0. Left: \cg; right: \xs{} (9,091 unseen benign files, 18 unseen webshells).}\label{fig:roc}
+\end{figure*}
+
 \paragraph{Unseen webshells}
 Only 18 deduplicated webshells come from collections outside the paper corpus, so recall estimates are coarse
 (seed-0 Wilson interval for 9/18: 29--71\%). Even so, recall drops from 0.97 to 0.64 $\pm$ 0.13 (GAT) and
 0.54 $\pm$ 0.06 (GCN). TF-IDF + XGBoost recalls 0.92 of them.
+
+\paragraph{Unseen collections (leave-one-collection-out)}
+To estimate recall on unseen webshells with more than 18 samples, we hold out every webshell that originates from one
+public collection, together with all near-duplicate clusters it touches (\Cref{tab:loo}). The GNNs keep a recall of
+0.92--0.95 on 77--222 webshells they have never seen, with FPR 0.4--0.6\% -- a much more favourable picture than the
+18 novel files of \xs. But the text baseline does better again on every collection (recall 0.97--1.00, FPR
+0.1\%), and even the twelve graph statistics recover 69--87\%. Together with the high recall of TF-IDF this shows that
+public collections share code: holding out a collection is not holding out a \emph{family}, and recall on genuinely
+new webshells is better estimated by the (small) \xs{} set.
+
+\begin{table*}[!t]\centering\footnotesize
+\caption{Leave-one-collection-out (5 seeds). Recall on the held-out collection's webshells; FPR on the 1,037 \cg{}
+benign test files.}\label{tab:loo}
+\input{../results/tables/origin_loo.tex}
+\end{table*}
 
 \paragraph{Small standalone benign scripts}
 Every benign training file comes from a large framework or CMS. To test whether the models learned ``malicious

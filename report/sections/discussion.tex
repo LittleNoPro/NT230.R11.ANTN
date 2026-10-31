@@ -12,16 +12,19 @@ ICFG + embedding + GNN detects webshells with F1 $\approx$ 0.95--0.99 (Tables 2,
   F1 0.90--0.98 (Table 2 setting), 0.980--0.983 (Table 4 setting) on the paper's protocol, 5 seeds & \repro{Reproduced} \\
 FastText is the best embedding (Table 2) & 0.977 $\pm$ 0.009, best of six by $>$0.04 & \repro{Reproduced} \\
 Ranking of the other five embeddings & within 0.036 F1, overlapping CIs; order differs & \notrepro{Not reproduced} \\
-GAT is the best GNN (Table 4) & GCN 0.981, GIN 0.983, GAT 0.980, overlapping CIs & \notrepro{Not reproduced} \\
+GAT is the best GNN (Table 4) & GCN 0.981, GIN 0.983, GAT 0.980; paired tests $p=0.79$ / $0.48$ & \notrepro{Not reproduced} \\
 F1 rises then falls with embedding dimension (Fig.~6) & flat 0.978--0.981 for 20--120 & \notrepro{Not reproduced} \\
 Context window 5 is optimal (Fig.~6--7) & nominal maximum at 5, not significant & \repro{Partly reproduced} \\
-Normalisation and risk weights improve all metrics (Fig.~8) & same order on \pr{} but within CIs; reversed on \cg{} & \notrepro{Not reproduced} \\
-GNN outperforms sequence/text approaches & TF-IDF + LR: F1 0.997 (\pr), 0.992 (\cg), lower FPR everywhere & \notrepro{Not reproduced} \\
+Normalisation and risk weights improve all metrics (Fig.~8) & same order on \pr{} ($p=0.10$); reversed on \cg{} ($p=0.07$) & \notrepro{Not reproduced} \\
+GNN outperforms sequence/text approaches & TF-IDF + LR: F1 0.997 (\pr), 0.992 (\cg), lower FPR everywhere; significant on all protocols & \notrepro{Not reproduced} \\
 Per-file cost suitable for online monitoring & 11\,ms extraction + ms scoring per file & \repro{Reproduced} \\ \midrule
 Working extractor on PHP 8 code & four LChecker fixes, documented & \improved{Improved} \\
 Documented corpus with SHA-256, provenance, near-dup clusters & GlareShell-R, data card, label guide & \improved{Extended} \\
 Leakage-controlled and cross-source evaluation & 77\% of test webshells leak in the paper's split; F1 $-$2 points on \cg; FPR $\times$4 on unseen projects & \improved{Extended} \\
 Shortcut probes & graph statistics alone F1 0.92; 10/12 benign standalone scripts flagged & \improved{Extended} \\
+Statistical rigour & paired $t$ + exact McNemar tests on identical test sets (\Cref{tab:signif}) & \improved{Extended} \\
+Deployment operating points & ROC/PR; recall at 0.1\% FPR on unseen projects: GAT 0.06 vs.\ TF-IDF 0.64 & \improved{Extended} \\
+Leave-one-collection-out split & 3 collections, 77--222 unseen webshells each (\Cref{tab:loo}) & \improved{Extended} \\
 Standalone detector / directory monitor & \texttt{src/detect.py} & \improved{Extended} \\
 \bottomrule
 \end{tabularx}
@@ -60,8 +63,10 @@ Standalone detector / directory monitor & \texttt{src/detect.py} & \improved{Ext
 \begin{itemize}
   \item Only five benign projects in training; four more in testing. Industrial web servers (the paper's motivating
         setting) run vendor-specific, often small, procedural PHP applications that resemble neither population.
-  \item Only 18 webshells are novel w.r.t.\ the paper sources; recall on unseen families is therefore estimated with
-        very wide intervals. No temporal split was possible (\Cref{sec:leak}).
+  \item Only 18 webshells are novel w.r.t.\ every paper source; recall on them has wide intervals. The
+        leave-one-collection-out protocol gives 77--222 test webshells per collection, but public collections copy
+        from each other, so a held-out collection is not a held-out \emph{family}. No temporal split was possible:
+        93\% of the webshells share one repository commit date (\Cref{sec:leak}).
   \item No adaptive attacker: renaming variables and functions is neutralised by normalisation, but string building,
         dynamic calls and payload encoding already defeat the risk mechanism for many collected samples.
 \end{itemize}
@@ -69,4 +74,7 @@ Standalone detector / directory monitor & \texttt{src/detect.py} & \improved{Ext
 \paragraph{Conclusion validity (are the differences real?)}
 Five seeds give 95\% intervals of roughly $\pm$0.01--0.03 F1 for the GNNs; several differences reported in the paper
 (e.g.\ between embedding methods, 0.91--0.95 F1 in a single run) are of the same order and cannot be distinguished
-without repeated runs. We never select hyper-parameters on the test set.
+without repeated runs; we therefore test every key comparison with paired tests (\Cref{tab:signif}). Five seeds
+give limited power: a non-significant difference is ``not shown'', not ``shown equal''. We never select
+hyper-parameters on the test set; only the alarm-budget operating points of \Cref{tab:oppoints} use test-set
+thresholds, which makes them optimistic for every model alike.

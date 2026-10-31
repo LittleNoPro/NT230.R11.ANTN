@@ -9,7 +9,8 @@ FastText as best embedding) but not the finer claims: GAT is not better than GCN
 flat, and the ablation of normalisation and risk weights is within noise. Beyond the paper we find that
 77\% of test webshells in a random split have a near-duplicate in training, that a TF-IDF + logistic-regression
 baseline beats every GNN (F1 0.997), that twelve graph statistics without code semantics already reach F1 0.92, that
-the false-positive rate quadruples on unseen benign projects (1.7\%), and that the final model flags 10 of 12
+the false-positive rate quadruples on unseen benign projects (1.7\%) -- at a 0.1\% alarm budget GAT then finds only
+6\% of unseen webshells versus 64\% for the text baseline -- and that the final model flags 10 of 12
 hand-written legitimate standalone scripts as webshells. High scores on this benchmark mostly measure the difference
 between large framework code and webshell collections, not malicious behaviour.
 \end{abstract}
