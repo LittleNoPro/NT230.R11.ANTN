@@ -1,9 +1,9 @@
 \section{Hyper-parameters}\label{app:hyper}
 \begin{table}[H]
-\centering\footnotesize
+\centering\scriptsize
 \caption{Hyper-parameters. ``Paper'' = value stated in~\paperref; everything else is our choice.}
 \label{tab:hyper}
-\begin{tabular}{@{}lll@{}}
+\begin{tabularx}{\linewidth}{@{}p{0.2\linewidth}Xp{0.17\linewidth}@{}}
 \toprule
 Item & Value & Source \\ \midrule
 Split & 8:1:1 stratified (\pr), cluster-grouped (\cg) & paper / ours \\
@@ -19,7 +19,7 @@ ICFG cap & 2,000 statements & ours \\
 Near-dup threshold & Jaccard $\ge 0.8$ on normalised statement sets & ours \\
 Seeds & 0--4 (sweeps 0--2) & ours \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 \section{Mapping to the course rubric}

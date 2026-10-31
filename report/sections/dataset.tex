@@ -16,16 +16,16 @@ PHPMailer~6.9.1, doorGets CMS). For the dataset track we add four \emph{held-out
 (BlackArch, xl7dev). Licenses range from CC0/MIT to GPL; several webshell collections state none, which is
 one more reason we never redistribute samples publicly (\Cref{sec:ethics}).
 
-\begin{table}[t]
+\begin{table*}[!t]
 \centering\footnotesize
 \caption{Corpus funnel per source. ``exact'' = first copy per SHA-256 (the paper's dedup); ``ws'' = first copy per
 whitespace-insensitive hash. Duplicates are resolved in favour of the paper sources, so the small numbers for the
 individual webshell collections mean that their files are already inside Cyc1e183.}
 \label{tab:funnel}
 \input{../results/tables/dataset_funnel.tex}
-\end{table}
+\end{table*}
 
-\paragraph{Reproduced composition.}
+\paragraph{Reproduced composition}
 After exact-hash deduplication the paper sources yield \textbf{3,097 webshells} (paper: 3,104) and 12,930 benign
 files. The paper reports 10,375 benign files without saying how they were chosen; we subsample proportionally per
 project (seed 2024) to exactly that size. The webshell count matches the paper within 0.2\%, which suggests the
@@ -39,21 +39,19 @@ classifier can exploit without understanding behaviour (graph size), and failure
 handle (an unparsable upload is itself suspicious). Statement counts of webshells (\Cref{fig:stmtdist}) span four
 orders of magnitude, as in the paper's Fig.~5. Extraction takes 11\,ms per file on average (P95 40\,ms) on one core.
 
-\begin{table}[t]
+\begin{table*}[!t]
 \centering\footnotesize
 \caption{ICFG extraction outcome (after the four extractor fixes of \Cref{sec:method}).}
 \label{tab:extraction}
 \input{../results/tables/extraction.tex}
-\end{table}
+\end{table*}
 
-\begin{figure}[t]
+\begin{figure*}[!t]
 \centering
-\begin{subfigure}{0.48\linewidth}\includegraphics[width=\linewidth]{figures/stmt_dist.pdf}
-\caption{Statements per webshell ICFG (cf.\ paper Fig.~5).}\label{fig:stmtdist}\end{subfigure}\hfill
-\begin{subfigure}{0.48\linewidth}\includegraphics[width=\linewidth]{figures/cluster_sizes.pdf}
-\caption{Near-duplicate cluster sizes, paper webshells.}\label{fig:clusters}\end{subfigure}
+\subfloat[Statements per webshell ICFG (cf.\ paper Fig.~5).\label{fig:stmtdist}]{\includegraphics[width=0.42\linewidth]{figures/stmt_dist.pdf}}\hfil
+\subfloat[Near-duplicate cluster sizes, paper webshells.\label{fig:clusters}]{\includegraphics[width=0.42\linewidth]{figures/cluster_sizes.pdf}}
 \caption{Corpus structure.}
-\end{figure}
+\end{figure*}
 
 \subsection{Near-duplicates and leakage}\label{sec:leak}
 Exact hashing is a weak notion of ``unique'' for scripts that are copied, re-saved with different line endings,

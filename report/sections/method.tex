@@ -19,7 +19,7 @@ Neither code nor data is published.
 \subsection{Our implementation}
 \Cref{fig:pipeline} shows the reproduction pipeline; every box is a script in \texttt{src/}.
 
-\begin{figure}[t]
+\begin{figure*}[!t]
 \centering
 \resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[box/.style={draw,rounded corners=2pt,align=center,font=\footnotesize,inner sep=3pt,minimum height=9mm,fill=gray!6},->,>=Stealth]
@@ -34,9 +34,9 @@ Neither code nor data is published.
 \end{tikzpicture}}
 \caption{Reproduction pipeline. Samples are only parsed; nothing is executed.}
 \label{fig:pipeline}
-\end{figure}
+\end{figure*}
 
-\paragraph{ICFG extraction.}
+\paragraph{ICFG extraction}
 We tried LChecker first, as the paper did. Its \emph{analysis} (\texttt{Main.php}) is a taint analysis for loose
 comparisons and does not output graphs, but its CFG builder (\texttt{ConstructCFG.php}) is reusable as a library.
 We therefore call LChecker's \texttt{ConstructCFG}, \texttt{ConstructFunctionCFG} and \texttt{ConstructClassCFG}
@@ -66,7 +66,7 @@ problems that the paper does not mention and that we had to fix to obtain meanin
 \end{itemize}
 We cap an ICFG at 2,000 statements to bound memory (\Cref{tab:extraction}).
 
-\paragraph{Embeddings and GNNs.}
+\paragraph{Embeddings and GNNs}
 Gensim~4.3.3 provides Word2Vec, FastText and Doc2Vec with default settings (dimension 100, window 5, 5 epochs,
 \texttt{min\_count}=1), except FastText's hash-bucket count (200k instead of 2M, for RAM) and PV-DBOW's
 \texttt{dbow\_words}=1 (otherwise the statement vectors are never trained). GloVe is our own PyTorch implementation

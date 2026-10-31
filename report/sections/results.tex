@@ -4,7 +4,7 @@ from the per-run JSON files in \texttt{results/runs/}. 115 GNN runs took 5.2\,GP
 
 \subsection{Reproducing the paper (RQ1, RQ2)}\label{sec:repro}
 
-\paragraph{Embedding methods (paper Table 2).}
+\paragraph{Embedding methods (paper Table 2)}
 \Cref{tab:t2} reproduces the paper's first experiment on \pr{} with the paper's Table-2 GCN. Absolute F1 values land
 within $\pm$0.04 of the paper and FastText is the best embedding, as in the paper -- by a larger margin
 (0.977 vs.\ 0.935 for the runner-up D2V-w). The ordering of the remaining five methods is \emph{not} reproduced:
@@ -14,38 +14,38 @@ methods lie within 0.036 F1 of each other with CI half-widths of 0.012--0.025, a
 evidence. All methods trade recall for precision in our runs (TNR $\geq$ 0.978, recall 0.86--0.97); the missed
 webshells are analysed in \Cref{sec:errors}.
 
-\begin{table}[t]\centering\footnotesize
+\begin{table*}[!t]\centering\footnotesize
 \caption{Paper Table 2 replication: embedding methods with a 2-layer GCN (hidden 10, batch 10) on \pr, 5 seeds.
 $\Delta$F1 = ours $-$ paper.}\label{tab:t2}
-\resizebox{\linewidth}{!}{\input{../results/tables/table2.tex}}
-\end{table}
+\begin{fittable}\input{../results/tables/table2.tex}\end{fittable}
+\end{table*}
 
-\paragraph{GNN architectures (paper Table 4).}
+\paragraph{GNN architectures (paper Table 4)}
 With FastText and the Table-3 hyper-parameters (\Cref{tab:t4}) all three GNNs reach F1 $\approx$ 0.98, again close
 to the paper (0.968--0.989). The paper's claim that \emph{GAT is the best architecture} is not reproduced: GCN
 (0.981 $\pm$ 0.008), GIN (0.983 $\pm$ 0.002) and GAT (0.980 $\pm$ 0.012) are statistically indistinguishable, and
 GAT has the largest seed variance. The Table-3 setting (3 layers, batch 256, up to 120 epochs) improves on the Table-2
 setting only marginally for GCN (0.981 vs.\ 0.977).
 
-\begin{table}[t]\centering\footnotesize
+\begin{table*}[!t]\centering\footnotesize
 \caption{Paper Table 4 replication: GNN architectures with FastText and the Table-3 hyper-parameters on \pr, 5 seeds.}\label{tab:t4}
-\resizebox{\linewidth}{!}{\input{../results/tables/table4.tex}}
-\end{table}
+\begin{fittable}\input{../results/tables/table4.tex}\end{fittable}
+\end{table*}
 
-\paragraph{Embedding dimension and context window (paper Fig.~6--7).}
+\paragraph{Embedding dimension and context window (paper Fig.~6--7)}
 The paper reports that F1 first rises with the embedding dimension and then falls (overfitting), and that context
 size 5 is optimal. In our sweep (\Cref{fig:sweeps}) F1 is flat: between 0.978 and 0.981 for dimensions 20--120 and
 between 0.975 and 0.981 for windows 2--7, with CIs of $\pm$0.01--0.02. Window 5 is the nominal maximum, consistent
 with the paper, but no setting is significantly better than another; a 20-dimensional embedding is as good as a
 100-dimensional one. We therefore do \emph{not} reproduce the rise-then-fall shape of Fig.~6.
 
-\begin{figure}[t]\centering
-\includegraphics[width=0.85\linewidth]{figures/sweeps.pdf}
+\begin{figure*}[!t]\centering
+\includegraphics[width=0.72\linewidth]{figures/sweeps.pdf}
 \caption{Embedding dimension (left) and FastText context window (right) vs.\ F1, FastText + GCN on \pr, 3 seeds
 (cf.\ paper Fig.~6 and 7). Error bars: 95\% CI.}\label{fig:sweeps}
-\end{figure}
+\end{figure*}
 
-\paragraph{Normalisation and risk weights (paper Fig.~8).}
+\paragraph{Normalisation and risk weights (paper Fig.~8)}
 \Cref{tab:ablation} and \Cref{fig:ablation} repeat the paper's ablation. On \pr{} the order matches the paper
 (none 0.973 $<$ n 0.977 $<$ n+w 0.977 F1, FPR 0.75\% $\to$ 0.56\% $\to$ 0.39\%) but all differences lie inside the
 confidence intervals, so the claim that ``both mechanisms improve all metrics'' is not statistically supported; recall
@@ -55,20 +55,20 @@ statements without normalisation or risk weights are best (0.973 $\pm$ 0.009) an
 recognise near-duplicates of training webshells; once near-duplicates are removed from the test set, the
 GNN has less to memorise, and the risk one-hot cannot compensate.
 
-\begin{table}[t]\centering\footnotesize
+\begin{table*}[!t]\centering\footnotesize
 \caption{Ablation of normalisation (n) and risk weights (w), FastText, 5 seeds (cf.\ paper Fig.~8).
 \pr: Table-2 GCN; \cg: Table-3 GAT.}\label{tab:ablation}
-\resizebox{\linewidth}{!}{\input{../results/tables/ablation.tex}}
-\end{table}
+\begin{fittable}\input{../results/tables/ablation.tex}\end{fittable}
+\end{table*}
 
-\begin{figure}[t]\centering
-\includegraphics[width=0.9\linewidth]{figures/ablation.pdf}
+\begin{figure*}[!t]\centering
+\includegraphics[width=0.78\linewidth]{figures/ablation.pdf}
 \caption{Ablation of normalisation and risk weights on both protocols (cf.\ paper Fig.~8).}\label{fig:ablation}
-\end{figure}
+\end{figure*}
 
 \subsection{Beyond the paper: leakage, baselines and generalisation (RQ3, RQ4)}\label{sec:beyond}
 
-\paragraph{Near-duplicate leakage.}
+\paragraph{Near-duplicate leakage}
 In the paper's random 8:1:1 split, 77\% ($\pm$4\%) of the test webshells have a near-duplicate (same
 whitespace-normalised or MinHash cluster, \Cref{sec:leak}) in the training set; for benign files the share is 9\%.
 Moving to the cluster-disjoint \cg{} split lowers F1 by about two points for both GNNs (\Cref{tab:protocols}:
@@ -76,7 +76,7 @@ GCN 0.981 $\to$ 0.959, GAT 0.980 $\to$ 0.963) while the FPR stays at 0.4--0.5\%.
 therefore recognition of variants of known webshells, but the drop is moderate: the detector also generalises to
 webshell clusters it has not seen, \emph{as long as the benign side comes from the same five projects}.
 
-\paragraph{Baselines.}
+\paragraph{Baselines}
 A bag of lexical tokens with logistic regression beats every GNN on every protocol (\Cref{tab:protocols}):
 F1 0.997 on \pr{} and 0.992 on \cg, FPR 0.13--0.14\%, at a fraction of the cost (seconds on CPU, no ICFG). It is
 also more accurate than the paper's best reported number (GAT, 0.9887). The GNNs' claimed advantage over
@@ -87,30 +87,30 @@ available from the shape of the ICFG. Conversely, rules built from GlareShell's 
 (F1 0.36--0.64): a webshell is not identified by \emph{which} functions it calls, and many benign framework files call
 the same functions (10\% FPR for ``any risky call'').
 
-\begin{table}[t]\centering\footnotesize
+\begin{table*}[!t]\centering\footnotesize
 \caption{GNNs and baselines under the three protocols (5 seeds). \xs: trained on the five paper benign projects
 and Cyc1e183, tested on 9,091 files of four unseen benign projects and 18 webshells from collections not in the paper
 corpus.}\label{tab:protocols}
-\resizebox{\linewidth}{!}{\input{../results/tables/protocols.tex}}
-\end{table}
+\begin{fittable}\input{../results/tables/protocols.tex}\end{fittable}
+\end{table*}
 
-\paragraph{Unseen benign projects (deployment FPR).}
+\paragraph{Unseen benign projects (deployment FPR)}
 On \xs{} the GNNs' FPR rises four-fold, to 1.7\% (GAT) and 1.8\% (GCN) -- about 150 false alarms per 9,091 benign
 files per run; with seed 0 the 95\% Wilson interval is 0.8--1.2\% for GAT and 2.1--2.7\% for GCN. The rate varies by
 project (\Cref{tab:perproject}): Joomla is worst (3\%), Laravel best (0.8\%). TF-IDF + LR stays at 0.35\%, showing
 that the jump is not a property of the projects alone but of what the GNN has learned.
 
-\begin{table}[t]\centering\footnotesize
+\begin{table*}[!t]\centering\footnotesize
 \caption{False-positive rate per unseen benign project (\xs, 5 seeds).}\label{tab:perproject}
 \input{../results/tables/per_source_fpr.tex}
-\end{table}
+\end{table*}
 
-\paragraph{Unseen webshells.}
+\paragraph{Unseen webshells}
 Only 18 deduplicated webshells come from collections outside the paper corpus, so recall estimates are coarse
 (seed-0 Wilson interval for 9/18: 29--71\%). Even so, recall drops from 0.97 to 0.64 $\pm$ 0.13 (GAT) and
 0.54 $\pm$ 0.06 (GCN). TF-IDF + XGBoost recalls 0.92 of them.
 
-\paragraph{Small standalone benign scripts.}
+\paragraph{Small standalone benign scripts}
 Every benign training file comes from a large framework or CMS. To test whether the models learned ``malicious
 behaviour'' or ``not framework code'', we wrote 12 ordinary standalone scripts of the kind found on small company
 web servers (contact form, image upload with MIME check, PDO login, CSV export, JSON to-do API, whitelisted
@@ -121,7 +121,7 @@ three-line \texttt{hello.php}; TF-IDF + LR trained on the same split flags 6 (\C
 have learned a large part of the population difference -- small, procedural, reads \texttt{\$\_GET/\$\_POST} --
 rather than malicious behaviour, and the GNN more so than the text baseline.
 
-\begin{table}[t]\centering\footnotesize
+\begin{table*}[!t]\centering\footnotesize
 \caption{Webshell probability for 12 hand-written benign standalone scripts (\texttt{tests/probe\_benign/});
 models trained on \cg, seed 0. Bold: flagged ($p \geq 0.5$).}\label{tab:probe}
 \begin{tabular}{@{}lrrl@{}}\toprule
@@ -140,7 +140,7 @@ cleanup\_cron.php & 0.376 & 0.490 & delete old cache files \\
 json\_api.php & 0.204 & 0.377 & JSON to-do list API \\ \midrule
 Flagged & \textbf{10/12} & \textbf{6/12} & \\ \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
 \subsection{Error analysis}\label{sec:errors}
 \Cref{tab:errors} tags every misclassification of GAT (all 5 seeds) with machine-checkable causes;
@@ -167,15 +167,15 @@ templates (\texttt{layouts/}, \texttt{tmpl/}) that mix HTML and short PHP blocks
 exception class stubs (\texttt{libraries/src/Event/\dots}). Together with the probe above this is the most important finding of this report: the detector's
 false-positive behaviour is driven by \emph{distance from the benign training projects}, not by risky code.
 
-\begin{table}[t]\centering\footnotesize
+\begin{table}[!t]\centering\scriptsize
 \caption{Error taxonomy of GAT, 5 seeds pooled (top-5 tags per error type; tags are not exclusive).}\label{tab:errors}
-\input{../results/tables/errors.tex}
+\begin{fittable}\input{../results/tables/errors.tex}\end{fittable}
 \end{table}
 
-\begin{figure}[t]\centering
-\includegraphics[width=\linewidth]{figures/confusion.pdf}
+\begin{figure*}[!t]\centering
+\includegraphics[width=0.85\linewidth]{figures/confusion.pdf}
 \caption{Confusion matrices of GAT, seed 0, on the three protocols.}\label{fig:confusion}
-\end{figure}
+\end{figure*}
 
 \subsection{Efficiency}
 ICFG extraction takes 11\,ms per file on average (95th percentile 40\,ms) on one CPU core, and scoring a graph takes

@@ -29,7 +29,7 @@ the OT network.
 Variants inside a family usually differ only by password, banner, language of the UI or layout, which is why
 public collections are full of near-duplicates (\Cref{sec:dataset}).
 
-\begin{figure}[t]
+\begin{figure*}[!t]
 \centering
 \resizebox{\linewidth}{!}{%
 \begin{tikzpicture}[
@@ -55,7 +55,7 @@ public collections are full of near-duplicates (\Cref{sec:dataset}).
 \caption{Concept map: attack chain (red), what the detector observes (blue), the detector (green) and
 the sources of confusion we analyse (orange).}
 \label{fig:concept}
-\end{figure}
+\end{figure*}
 
 \subsection{Threat model}
 \begin{itemize}
@@ -87,7 +87,7 @@ A file is \emph{webshell} if it comes from a public webshell collection and \emp
 pinned release of a widely deployed project; labels are source-level (full guide in
 \texttt{docs/LABEL\_GUIDE.md}). \Cref{tab:features} lists what GlareShell actually observes for each file.
 
-\begin{table}[t]
+\begin{table*}[!t]
 \centering\small
 \caption{Feature view of GlareShell (per node of the ICFG unless stated).}
 \label{tab:features}
@@ -102,9 +102,9 @@ Edges & intra-procedural control flow + call/return edges between functions (ICF
 Graph & mean of final node states (Eq.~6 of~\paperref{}) & whole-file behaviour \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
-\paragraph{Confusable cases.} The feature view predicts where the detector should fail, and we test these
+\paragraph{Confusable cases} The feature view predicts where the detector should fail, and we test these
 predictions in \Cref{sec:errors}:
 (i) benign framework code is full of \emph{obfuscated}-level calls (\texttt{call\_user\_func\_array} for dispatch,
 \texttt{usort} with closures, \texttt{preg\_replace\_callback}) and installers/updaters call \texttt{exec};

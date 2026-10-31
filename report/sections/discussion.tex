@@ -4,7 +4,7 @@
 \Cref{tab:verdict} separates what we could confirm from what we improved and what we could not reproduce.
 Colours: \repro{reproduced}, \improved{improved / extended}, \notrepro{not reproduced}.
 
-\begin{table}[t]\centering\footnotesize
+\begin{table*}[!t]\centering\footnotesize
 \caption{Verdict per claim of the paper and per addition of this report.}\label{tab:verdict}
 \begin{tabularx}{\linewidth}{@{}p{0.30\linewidth}Xl@{}}\toprule
 Claim / item & Our evidence & Verdict \\ \midrule
@@ -25,10 +25,10 @@ Shortcut probes & graph statistics alone F1 0.92; 10/12 benign standalone script
 Standalone detector / directory monitor & \texttt{src/detect.py} & \improved{Extended} \\
 \bottomrule
 \end{tabularx}
-\end{table}
+\end{table*}
 
 \subsection{Threats to validity}\label{sec:threats}
-\paragraph{Internal validity (does our pipeline do what the paper did?).}
+\paragraph{Internal validity (does our pipeline do what the paper did?)}
 \begin{itemize}
   \item \emph{Unreleased implementation.} ICFG construction above LChecker's CFG builder, the pruning rules, the
         built-in function list, the risk lists and the statement text format are our reading of the paper. Different
@@ -43,7 +43,7 @@ Standalone detector / directory monitor & \texttt{src/detect.py} & \improved{Ext
         own GloVe implementation.
 \end{itemize}
 
-\paragraph{Construct validity (do the labels and metrics measure webshell detection?).}
+\paragraph{Construct validity (do the labels and metrics measure webshell detection?)}
 \begin{itemize}
   \item \emph{Source-level labels.} ``Benign'' means ``file of a large, modern framework/CMS release'', ``webshell'' means
         ``file of a public collection''. The two populations also differ in age (PHP~4/5 vs.\ PHP~8 style), size,
@@ -56,7 +56,7 @@ Standalone detector / directory monitor & \texttt{src/detect.py} & \improved{Ext
         overstate deployment performance; FPR on the 9,091 held-out benign files is the more relevant number.
 \end{itemize}
 
-\paragraph{External validity (does it generalise?).}
+\paragraph{External validity (does it generalise?)}
 \begin{itemize}
   \item Only five benign projects in training; four more in testing. Industrial web servers (the paper's motivating
         setting) run vendor-specific, often small, procedural PHP applications that resemble neither population.
@@ -66,7 +66,7 @@ Standalone detector / directory monitor & \texttt{src/detect.py} & \improved{Ext
         dynamic calls and payload encoding already defeat the risk mechanism for many collected samples.
 \end{itemize}
 
-\paragraph{Conclusion validity (are the differences real?).}
+\paragraph{Conclusion validity (are the differences real?)}
 Five seeds give 95\% intervals of roughly $\pm$0.01--0.03 F1 for the GNNs; several differences reported in the paper
 (e.g.\ between embedding methods, 0.91--0.95 F1 in a single run) are of the same order and cannot be distinguished
 without repeated runs. We never select hyper-parameters on the test set.
