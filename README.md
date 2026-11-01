@@ -49,7 +49,7 @@ src/       build_manifest.py   provenance, hashes, 2-level dedup          -> dat
            analyze.py          tables, figures, error taxonomy            -> results/tables, report/figures
            train_final.py / detect.py  demo model + standalone detector / directory watcher
            probe.py            TF-IDF baseline on tests/probe_benign (shortcut probe)
-docs/      DATA_CARD.md  LABEL_GUIDE.md  SCHEMA.md
+docs/      DATA_CARD.md  LABEL_GUIDE.md  SCHEMA.md  AUDIT_PROTOCOL.md (manual label audit)
 report/    LaTeX report
 ```
 
