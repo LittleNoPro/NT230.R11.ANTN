@@ -6,7 +6,7 @@ The original code and dataset are not public; everything here is rebuilt from th
 
 Report: [`report/main.tex`](report/main.tex) → `report/main.pdf`.
 
-## Key results (5 seeds, mean ± 95% CI; full report: `report/main.pdf`)
+## Key results (5 seeds, mean ± 95% CI; paper: `report/main.pdf` (7 pages), all tables: `report/extended.pdf`)
 | | Paper | Ours |
 |---|---|---|
 | Best embedding (Table 2, GCN) | FastText 0.945 | FastText 0.977 ± 0.009 |

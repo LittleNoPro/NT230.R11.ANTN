@@ -1,0 +1,65 @@
+\documentclass[conference,a4paper]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{booktabs,multirow,tabularx,makecell,threeparttable}
+\usepackage{graphicx,float}
+\usepackage[caption=false,font=footnotesize]{subfig}  % IEEE-recommended; caption/subcaption break IEEE captions
+\usepackage{adjustbox}
+\usepackage{stfloats}  % allow [b] placement for two-column floats
+\usepackage{cite}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,fit,calc}
+\usepackage{amsmath}
+\usepackage[colorlinks=true,linkcolor=MidnightBlue,citecolor=MidnightBlue,urlcolor=MidnightBlue]{hyperref}
+\usepackage{cleveref}
+
+\setlist{nosep,leftmargin=*}
+% pack floats more tightly (many two-column tables)
+\renewcommand{\topfraction}{0.9}\renewcommand{\dbltopfraction}{0.9}
+\renewcommand{\floatpagefraction}{0.8}\renewcommand{\dblfloatpagefraction}{0.8}
+\setcounter{topnumber}{3}\setcounter{dbltopnumber}{3}\setcounter{totalnumber}{5}
+% wide tables: shrink only when wider than the text block (never scale up)
+\newenvironment{fittable}{\begin{adjustbox}{max width=\linewidth}}{\end{adjustbox}}
+\lstset{basicstyle=\ttfamily\footnotesize,columns=fullflexible,breaklines=true,frame=single,
+        framerule=0.3pt,xleftmargin=2pt,xrightmargin=2pt}
+\newcommand{\paperref}{\cite{feng2024glareshell}}
+\newcommand{\pr}{\texttt{paper\_random}}
+\newcommand{\cg}{\texttt{clean\_group}}
+\newcommand{\xs}{\texttt{cross\_source}}
+\newcommand{\repro}[1]{\textcolor{ForestGreen}{\textbf{#1}}}
+\newcommand{\notrepro}[1]{\textcolor{BrickRed}{\textbf{#1}}}
+\newcommand{\improved}[1]{\textcolor{RoyalBlue}{\textbf{#1}}}
+\newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
+
+\title{Reproducing GlareShell: Graph Learning-based PHP Webshell Detection, Revisited under Leakage Control (Extended Version)%
+\thanks{Course project for NT230 (Malware Analysis); instructor: Phan The Duy.}}
+
+\author{\IEEEauthorblockN{Dang Minh Tu, Vo Quang Vu, Le Tri Duc}
+\IEEEauthorblockA{\textit{University of Information Technology, Ho Chi Minh City, Vietnam}\\
+\textit{Vietnam National University, Ho Chi Minh City, Vietnam}\\
+\{24520033,24522045,24520009\}@gm.uit.edu.vn}}
+
+\begin{document}
+\maketitle
+
+\input{sections/abstract}
+\input{sections/intro}
+\input{sections/background}
+\input{sections/method}
+\input{sections/dataset}
+\input{sections/setup}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/ethics}
+\input{sections/conclusion}
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\appendices
+\input{sections/appendix}
+\end{document}
