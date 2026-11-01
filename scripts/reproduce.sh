@@ -14,3 +14,8 @@ python experiments.py table2 ablation table4 clean cross sweep origin
 python analyze.py
 python train_final.py                         # demo model -> models/ (used by detect.py)
 python probe.py                               # TF-IDF side of the benign probe
+# improvement experiment: add small benign applications to training (separate track, main corpus untouched)
+for step in manifest extract graphs splits; do python hard_benign.py $step; done
+GLARESHELL_GRAPHS=graphs_aug.pkl python experiments.py hard
+python hard_benign.py tfidf
+python analyze.py

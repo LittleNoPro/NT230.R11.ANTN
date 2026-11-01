@@ -60,9 +60,18 @@ def jobs(group):
                 for s in SEEDS:
                     yield f"loo_{o}_{g}_s{s}", ["--split", f"loo_{o}", "--emb", "fasttext", "--gnn", g,
                                                 "--seed", str(s)] + T3[g] + T3_COMMON
+    if group == "hard":  # improvement experiment, run alone: GLARESHELL_GRAPHS=graphs_aug.pkl
+        for kind in ("base", "aug"):
+            for s in SEEDS:
+                yield f"hard_{kind}_gat_s{s}", ["--split", kind, "--emb", "fasttext", "--gnn", "gat",
+                                                "--seed", str(s)] + T3["gat"] + T3_COMMON
 
 
 def main(groups):
+    if "hard" in groups:
+        import os
+        assert groups == ["hard"] and os.environ.get("GLARESHELL_GRAPHS") == "graphs_aug.pkl", \
+            "run as: GLARESHELL_GRAPHS=graphs_aug.pkl python experiments.py hard"
     for grp in groups:
         for name, args in jobs(grp):
             if (RUNS / f"{name}.json").exists():

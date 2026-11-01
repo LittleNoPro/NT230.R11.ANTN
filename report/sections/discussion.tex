@@ -25,6 +25,7 @@ Shortcut probes & graph statistics alone F1 0.92; 10/12 benign standalone script
 Statistical rigour & paired $t$ + exact McNemar tests on identical test sets (\Cref{tab:signif}) & \improved{Extended} \\
 Deployment operating points & ROC/PR; recall at 0.1\% FPR on unseen projects: GAT 0.06 vs.\ TF-IDF 0.64 & \improved{Extended} \\
 Leave-one-collection-out split & 3 collections, 77--222 unseen webshells each (\Cref{tab:loo}) & \improved{Extended} \\
+Training on small benign applications & FPR on all benign test files: GAT 2.5\% $\to$ 0.9\% ($p=0.006$), recall unchanged; still 8/12 probes flagged (\Cref{tab:hard}) & \improved{Improved} \\
 Standalone detector / directory monitor & \texttt{src/detect.py} & \improved{Extended} \\
 \bottomrule
 \end{tabularx}
@@ -61,7 +62,7 @@ Standalone detector / directory monitor & \texttt{src/detect.py} & \improved{Ext
 
 \paragraph{External validity (does it generalise?)}
 \begin{itemize}
-  \item Only five benign projects in training; four more in testing. Industrial web servers (the paper's motivating
+  \item Only five benign projects in training (ten with the improvement experiment); eight more in testing. Industrial web servers (the paper's motivating
         setting) run vendor-specific, often small, procedural PHP applications that resemble neither population.
   \item Only 18 webshells are novel w.r.t.\ every paper source; recall on them has wide intervals. The
         leave-one-collection-out protocol gives 77--222 test webshells per collection, but public collections copy

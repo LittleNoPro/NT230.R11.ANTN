@@ -424,6 +424,50 @@ def origin_loo(S):
     S["origin_loo"] = out
 
 
+def hard_benign(S):
+    """Improvement experiment: train without (base) / with (aug) small benign apps; same test files."""
+    hard = DATA / "manifests/manifest_hard.csv"
+    if not hard.exists():
+        return
+    mh = pd.read_csv(hard)
+    cg = set(json.load(open(SPLITS / "clean_group_s0.json"))["test"])
+    groups = {"clean test: webshell recall": ("cg", 1), "clean test: FPR": ("cg", 0),
+              "unseen large projects (\\xs): FPR": ("xs", 0), "18 novel webshells: recall": ("xs", 1)}
+    for src, name in (("opnsense__core", "OPNsense core"), ("osTicket__osTicket", "osTicket"), ("mybb__mybb", "MyBB")):
+        groups[f"unseen small app {name}: FPR"] = (src, 0)
+    groups["12 benign probe scripts: flagged"] = ("probe_benign", 0)
+    groups["Tiny File Manager: $p$(webshell)"] = ("prasathmani__tinyfilemanager", None)
+    hsrc = dict(zip(mh.sha256, mh.source))
+    out, rows = {}, []
+    for model, pat in (("GAT", "hard_{k}_gat_s?"), ("TF-IDF + LR", "bl_{k}_tfidf_lr_s?")):
+        res = {}
+        for k in ("base", "aug"):
+            per = defaultdict(list)
+            for r in load(pat.format(k=k)):
+                d = pd.DataFrame(dict(sha=r["pred"]["sha"], y=r["pred"]["y"], p=r["pred"]["p"]))
+                d["g"] = [hsrc.get(x, "cg" if x in cg else "xs") for x in d.sha]
+                for gname, (g, y) in groups.items():
+                    sub = d[d.g == g] if y is None else d[(d.g == g) & (d.y == y)]
+                    if not len(sub):
+                        continue
+                    if y is None:
+                        v = float(sub.p.iloc[0])
+                    elif g == "probe_benign":
+                        v = float((sub.p >= .5).sum())
+                    else:  # recall (webshells) or FPR (benign)
+                        v = float((sub.p >= .5).mean())
+                    per[gname].append(v)
+            res[k] = {g: mean_ci(v) for g, v in per.items()}
+        out[model] = res
+    for g in groups:  # one row per test group: GAT base/aug, TF-IDF base/aug
+        d = 1 if "probe" in g else (3 if "recall" in g or "$p$" in g else 4)
+        rows.append([g] + [fmt(out[m][k][g], d) for m in out for k in ("base", "aug")])
+    n_files = mh[mh.subset != "hard_train"].groupby("source").size().to_dict()
+    S["hard_benign"] = dict(results=out, n_test_files=n_files, n_train_added=int((mh.subset == "hard_train").sum()))
+    latex_table(rows, ["Test group", "GAT base", "GAT aug", "TF-IDF+LR base", "TF-IDF+LR aug"],
+                TAB / "hard_benign.tex", n_text=1)
+
+
 def timing(S):
     st = pd.read_csv(PROC / "graph_stats.csv")
     S["timing"] = dict(extract_ms_mean=float(st.secs.mean() * 1000), extract_ms_p95=float(st.secs.quantile(.95) * 1000))
@@ -433,7 +477,7 @@ def main():
     FIG.mkdir(parents=True, exist_ok=True)
     S = defaultdict(dict)
     for fn in (leakage_and_data, table2, table4, ablation, sweeps, protocols, per_source_fpr, confusion, error_taxonomy,
-               significance, operating_points, origin_loo, timing):
+               significance, operating_points, origin_loo, hard_benign, timing):
         try:
             fn(S)
         except Exception as e:  # keep producing the other artefacts while runs are still in progress

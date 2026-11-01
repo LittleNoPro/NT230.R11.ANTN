@@ -190,6 +190,32 @@ Flagged & \textbf{10/12} & \textbf{6/12} & \\ \bottomrule
 \end{tabular}
 \end{table*}
 
+\subsection{Improvement: training on small benign applications}\label{sec:hard}
+The probe and the false-positive analysis below point at one fix: show the model benign code that resembles the
+deployment. We added nine small, procedural PHP applications (pinned commits in \texttt{scripts/fetch\_sources.sh}).
+\emph{Training only:} YOURLS, FluxBB, DokuWiki, Cacti and Adminer, capped at 1,000 files each (2,511 files).
+\emph{Test only:} OPNsense core, osTicket, MyBB and Tiny File Manager (2,709 files). Files whose
+whitespace-normalised hash occurs in the main corpus were removed, and the main corpus, vocabulary ids and earlier
+results are unchanged (\texttt{src/hard\_benign.py}). \emph{Base} trains on \cg{} as before; \emph{aug} adds the
+five training apps. Both are evaluated on the \emph{same} 13,041 files: the \cg{} and \xs{} test sets, the
+held-out small apps and the 12 probe scripts. Configuration: FastText + GAT with the Table-3 settings, and
+TF-IDF + LR, 5 seeds each.
+
+\Cref{tab:hard} shows the result. Pooled over all benign test files, the GAT false-positive rate drops from 2.5\% to
+0.9\% (paired $t$, $p=0.006$) and that of TF-IDF + LR from 1.7\% to 0.5\% ($p<0.001$). The gain is largest on the
+held-out small apps (osTicket: 7.4\% $\to$ 1.3\% for GAT) and also carries over to the large unseen projects of
+\xs{} (1.45\% $\to$ 0.63\%). GAT recall on webshells does not change significantly (0.93 $\to$ 0.91, $p=0.25$).
+TF-IDF loses 2.5 points ($p<0.001$) but halves its flagged probes (6 $\to$ 3). The fix helps but does not solve the problem: GAT still flags 8 of the 12
+probe scripts. Tiny File Manager, a legitimate single-file file manager whose features match a webshell's, drops
+from $p=0.95$ to 0.63 but stays flagged. Five extra projects narrow the population gap; closing it would take
+benign training data at the scale and diversity of the webshell collections.
+
+\begin{table*}[!t]\centering\footnotesize
+\caption{Improvement experiment: base (\cg{} training) vs.\ aug (+5 small benign applications); same 13,041 test
+files, mean $\pm$ 95\% CI over 5 seeds. Recall: higher is better; FPR and ``flagged'': lower is better.}\label{tab:hard}
+\input{../results/tables/hard_benign.tex}
+\end{table*}
+
 \subsection{Error analysis}\label{sec:errors}
 \Cref{tab:errors} tags every misclassification of GAT (all 5 seeds) with machine-checkable causes;
 \Cref{fig:confusion} shows seed-0 confusion matrices.

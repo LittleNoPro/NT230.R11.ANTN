@@ -1,0 +1,14 @@
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Test group & GAT base & GAT aug & TF-IDF+LR base & TF-IDF+LR aug \\ \midrule
+clean test: webshell recall & 0.961$\pm$0.058 & 0.943$\pm$0.067 & 0.998$\pm$0.006 & 0.967$\pm$0.077 \\
+clean test: FPR & 0.0046$\pm$0.0073 & 0.0023$\pm$0.0043 & 0.0000$\pm$0.0000 & 0.0000$\pm$0.0000 \\
+unseen large projects (\xs): FPR & 0.0145$\pm$0.0054 & 0.0063$\pm$0.0008 & 0.0034$\pm$0.0002 & 0.0015$\pm$0.0007 \\
+18 novel webshells: recall & 0.843$\pm$0.239 & 0.855$\pm$0.132 & 0.921$\pm$0.138 & 0.876$\pm$0.184 \\
+unseen small app OPNsense core: FPR & 0.0567$\pm$0.0202 & 0.0270$\pm$0.0075 & 0.0024$\pm$0.0000 & 0.0014$\pm$0.0013 \\
+unseen small app osTicket: FPR & 0.0735$\pm$0.0283 & 0.0132$\pm$0.0049 & 0.1226$\pm$0.0209 & 0.0367$\pm$0.0104 \\
+unseen small app MyBB: FPR & 0.0381$\pm$0.0124 & 0.0109$\pm$0.0050 & 0.0186$\pm$0.0037 & 0.0019$\pm$0.0000 \\
+12 benign probe scripts: flagged & 11.2$\pm$1.0 & 8.4$\pm$1.1 & 6.2$\pm$0.6 & 3.0$\pm$0.0 \\
+Tiny File Manager: $p$(webshell) & 0.952$\pm$0.079 & 0.625$\pm$0.205 & 0.714$\pm$0.026 & 0.525$\pm$0.064 \\
+\bottomrule
+\end{tabular}

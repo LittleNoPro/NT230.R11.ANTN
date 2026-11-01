@@ -9,6 +9,7 @@ collections; 77\% of test webshells have a near-duplicate in training; a lexical
 GNN; and the models flag most small, legitimate standalone scripts. A detector trained this way would raise frequent
 false alarms on exactly the small vendor applications that run on industrial web servers. For a practical
 detector we would (i) collect benign code that resembles the deployment (small procedural applications, admin
-tools, upload handlers), (ii) evaluate on cluster- and source-disjoint splits by default, (iii) relabel helper files
+tools, upload handlers) -- five such applications already cut the GAT false-positive rate from 2.5\% to 0.9\%
+(\Cref{sec:hard}), and more are needed -- (ii) evaluate on cluster- and source-disjoint splits by default, (iii) relabel helper files
 inside webshell kits, and (iv) report FPR on unseen projects alongside F1. All code, splits, per-run predictions and
 the document trail needed to rerun this study are in the repository.

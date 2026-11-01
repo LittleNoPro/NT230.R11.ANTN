@@ -18,6 +18,7 @@ Report: [`report/main.tex`](report/main.tex) → `report/main.pdf`.
 | Benign standalone scripts flagged (`tests/probe_benign`) | — | 10 / 12 |
 | GAT recall at 0.1% FPR, unseen projects (TF-IDF + LR) | — | 0.06 (0.64) |
 | GAT recall, leave-one-collection-out (TF-IDF + LR) | — | 0.92–0.95 (0.97–1.00) |
+| Improvement: + 5 small benign apps in training → GAT FPR on all benign test files | — | 2.5% → 0.9% (p = 0.006), recall unchanged |
 
 Headline F1 is reproduced; the component claims (best GNN, dimension curve, normalisation/risk ablation) are not
 statistically supported (paired t / McNemar tests), and the benchmark is largely separable by code population rather than behaviour.

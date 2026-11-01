@@ -6,6 +6,7 @@ Embeddings are trained on the TRAINING files of a split only and cached per conf
 Returns a float32 table indexed by (global vocab id + 1); row 0 = zero vector (empty graph / OOV).
 """
 import hashlib
+import os
 import pickle
 
 import numpy as np
@@ -73,6 +74,9 @@ def build_table(G, vocab, train_keys, field, method, dim=100, window=5, seed=0, 
     """Train `method` on the training files and return the lookup table for the whole vocab."""
     h = hashlib.md5(("|".join(sorted(train_keys)) + f"{field}{method}{dim}{window}{seed}{tag}").encode()).hexdigest()[:16]
     path = CACHE / f"{method}_{field}_d{dim}_w{window}_s{seed}_{h}.npy"
+    if path.exists() and np.load(path, mmap_mode="r").shape[0] != len(vocab) + 1:
+        # same training files but an extended vocabulary (graphs_aug.pkl): separate cache entry
+        path = path.with_name(path.stem + f"_v{len(vocab)}.npy")
     if path.exists():
         return np.load(path, mmap_mode="r")
     from gensim.models import Word2Vec, FastText
@@ -106,5 +110,6 @@ def build_table(G, vocab, train_keys, field, method, dim=100, window=5, seed=0, 
 
 
 def load_graphs():
-    with open(PROC / "graphs.pkl", "rb") as f:
+    # GLARESHELL_GRAPHS=graphs_aug.pkl selects the corpus extended with the hard-benign track (hard_benign.py)
+    with open(PROC / os.environ.get("GLARESHELL_GRAPHS", "graphs.pkl"), "rb") as f:
         return pickle.load(f)

@@ -2359,6 +2359,174 @@
    }
   }
  },
+ "hard_benign": {
+  "results": {
+   "GAT": {
+    "base": {
+     "clean test: webshell recall": [
+      0.9608781194988092,
+      0.057995405116946015
+     ],
+     "clean test: FPR": [
+      0.004582700604877093,
+      0.007322469150183406
+     ],
+     "unseen large projects (\\xs): FPR": [
+      0.014498605584790237,
+      0.005428106423469019
+     ],
+     "18 novel webshells: recall": [
+      0.8433739652204613,
+      0.2386800889892322
+     ],
+     "unseen small app OPNsense core: FPR": [
+      0.056694813027744276,
+      0.020150640077949193
+     ],
+     "unseen small app osTicket: FPR": [
+      0.07346041055718475,
+      0.028273909135585317
+     ],
+     "unseen small app MyBB: FPR": [
+      0.03805825242718447,
+      0.012364448051088602
+     ],
+     "12 benign probe scripts: flagged": [
+      11.2,
+      1.0388506336835697
+     ],
+     "Tiny File Manager: $p$(webshell)": [
+      0.9520200000000001,
+      0.07850246062196874
+     ]
+    },
+    "aug": {
+     "clean test: webshell recall": [
+      0.9434178020384918,
+      0.06663544548046933
+     ],
+     "clean test: FPR": [
+      0.0023099176618945182,
+      0.004273002839231078
+     ],
+     "unseen large projects (\\xs): FPR": [
+      0.006313946743464726,
+      0.0008081982388091805
+     ],
+     "18 novel webshells: recall": [
+      0.8547232000179721,
+      0.13235151276483628
+     ],
+     "unseen small app OPNsense core: FPR": [
+      0.027020506634499397,
+      0.007458910548648565
+     ],
+     "unseen small app osTicket: FPR": [
+      0.013196480938416424,
+      0.004902173948249885
+     ],
+     "unseen small app MyBB: FPR": [
+      0.01087378640776699,
+      0.0049995519765613245
+     ],
+     "12 benign probe scripts: flagged": [
+      8.4,
+      1.1105780420791194
+     ],
+     "Tiny File Manager: $p$(webshell)": [
+      0.6247659999999999,
+      0.2049418307816305
+     ]
+    }
+   },
+   "TF-IDF + LR": {
+    "base": {
+     "clean test: webshell recall": [
+      0.9977011494252874,
+      0.006382632425742058
+     ],
+     "clean test: FPR": [
+      0.0,
+      0.0
+     ],
+     "unseen large projects (\\xs): FPR": [
+      0.0034165724396659275,
+      0.00018733592518763354
+     ],
+     "18 novel webshells: recall": [
+      0.9205244788114644,
+      0.13783543239812526
+     ],
+     "unseen small app OPNsense core: FPR": [
+      0.0024125452352231603,
+      0.0
+     ],
+     "unseen small app osTicket: FPR": [
+      0.12258064516129033,
+      0.020891584406112985
+     ],
+     "unseen small app MyBB: FPR": [
+      0.018640776699029124,
+      0.0036564595890261004
+     ],
+     "12 benign probe scripts: flagged": [
+      6.2,
+      0.5552890210395597
+     ],
+     "Tiny File Manager: $p$(webshell)": [
+      0.7140920000000001,
+      0.025609738212173792
+     ]
+    },
+    "aug": {
+     "clean test: webshell recall": [
+      0.966830870279146,
+      0.07713242049207554
+     ],
+     "clean test: FPR": [
+      0.0,
+      0.0
+     ],
+     "unseen large projects (\\xs): FPR": [
+      0.0014560501685554836,
+      0.000657873901945776
+     ],
+     "18 novel webshells: recall": [
+      0.876493928929969,
+      0.1843416220018938
+     ],
+     "unseen small app OPNsense core: FPR": [
+      0.0014475271411338961,
+      0.0012531370732009283
+     ],
+     "unseen small app osTicket: FPR": [
+      0.036656891495601175,
+      0.010438848510591596
+     ],
+     "unseen small app MyBB: FPR": [
+      0.001941747572815534,
+      0.0
+     ],
+     "12 benign probe scripts: flagged": [
+      3.0,
+      0.0
+     ],
+     "Tiny File Manager: $p$(webshell)": [
+      0.524628,
+      0.06449998125418348
+     ]
+    }
+   }
+  },
+  "n_test_files": {
+   "mybb__mybb": 515,
+   "opnsense__core": 829,
+   "osTicket__osTicket": 1364,
+   "prasathmani__tinyfilemanager": 1,
+   "probe_benign": 12
+  },
+  "n_train_added": 2511
+ },
  "timing": {
   "extract_ms_mean": 11.099928497656315,
   "extract_ms_p95": 39.5

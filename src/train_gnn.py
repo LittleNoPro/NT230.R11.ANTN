@@ -93,6 +93,9 @@ def run(cfg, table=None, save=None):
     import pandas as pd
     from common import DATA
     lab = pd.read_csv(DATA / "manifests/manifest_all.csv", usecols=["sha256", "label"]).drop_duplicates("sha256")
+    hard = DATA / "manifests/manifest_hard.csv"
+    if hard.exists():  # hard-benign track (all benign)
+        lab = pd.concat([lab, pd.read_csv(hard, usecols=["sha256", "label"])]).drop_duplicates("sha256")
     ymap = dict(zip(lab.sha256, (lab.label == "webshell").astype(int)))
     t0 = time.time()
     emb_split = cfg.get("emb_split", cfg["split"])

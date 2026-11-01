@@ -11,7 +11,9 @@ flat, and the ablation of normalisation and risk weights is within noise. Beyond
 baseline beats every GNN (F1 0.997), that twelve graph statistics without code semantics already reach F1 0.92, that
 the false-positive rate quadruples on unseen benign projects (1.7\%) -- at a 0.1\% alarm budget GAT then finds only
 6\% of unseen webshells versus 64\% for the text baseline -- and that the final model flags 10 of 12
-hand-written legitimate standalone scripts as webshells. High scores on this benchmark mostly measure the difference
+hand-written legitimate standalone scripts as webshells. Adding five small benign applications to training cuts
+the GAT false-positive rate on all benign test files from 2.5\% to 0.9\% without a significant loss of recall, but
+8 of the 12 scripts stay flagged. High scores on this benchmark mostly measure the difference
 between large framework code and webshell collections, not malicious behaviour.
 \end{abstract}
 
