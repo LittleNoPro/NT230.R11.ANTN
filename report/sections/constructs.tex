@@ -1,0 +1,59 @@
+\section{Controlled PHP construct study}\label{sec:constructs}
+To inspect what the graph actually retains, we add \textbf{PHP-Construct-22}: eleven pairs of original,
+benign toy programs stored as \texttt{.php.txt}, with a CC0 license, source hashes, label rationale and an
+\texttt{analysis\_only} split in \texttt{tests/construct\_cases/manifest.json}. They are excluded from all
+classifier splits. \texttt{src/construct\_cases.py} passes them only to the parser, never to the PHP executor.
+The retained JSON and DOT files in \texttt{results/construct\_cases/} contain every emitted node and edge.
+This study used PHP~8.2.35, PHP-Parser~4.19.4 and the pinned LChecker revision; the earlier classifier
+experiments used PHP~8.3. No trained checkpoint is available in this checkout, so we report extractor
+observations, not new classifier predictions or detection metrics.
+
+\begin{table*}[!t]\centering\footnotesize
+\caption{Observed construct pairs (A/B). ``Same graph'' compares normalised statements, risk and edges,
+excluding raw statement text. Risk: 0 normal, 1 callback/obfuscated, 2 critical.}
+\label{tab:constructs}
+\input{../results/tables/construct_cases.tex}
+\end{table*}
+
+\paragraph{Data dependencies and sanitisation}
+The edges encode control flow and call/return relations. There are \emph{no explicit def-use or taint edges},
+no source-to-sink proof and no inter-file data-flow analysis. Escaping an output with
+\texttt{htmlspecialchars} changes its statement embedding input but does not prove to the classifier that
+the output is safe. More strongly, the \emph{Different input dependencies} pair assigns request input to
+\texttt{\$tainted}, a fixed literal to \texttt{\$safe}, then outputs either variable through
+\texttt{htmlspecialchars}. Constant-assignment pruning removes the second assignment, and normalisation
+maps both variables to \texttt{\$local}; both files consequently yield the identical two-node graph below.
+Their runtime dependencies differ. This is a concrete information loss rather than a classification error.
+
+\begin{figure}[!t]\centering
+\begin{tikzpicture}[node distance=5mm,box/.style={draw,rounded corners,align=center,font=\scriptsize,text width=0.88\linewidth},->,>=Stealth]
+\node[box] (a) {\texttt{\$local = \$\_GET['message'] ?? '';}};
+\node[box,below=of a] (b) {\texttt{echo htmlspecialchars(\$local);}};
+\draw (a)--(b);
+\end{tikzpicture}
+\caption{Identical normalised graph for two different input dependencies. Each node has risk 0;
+the edge is control flow, not evidence that the echoed value comes from the request.}
+\label{fig:dataflowloss}
+\end{figure}
+
+\paragraph{Obfuscation, callbacks and benign dangerous APIs}
+Direct \texttt{strlen} has risk 0; invoking the same fixed callback via \texttt{call\_user\_func} has risk 1.
+Building the function name by concatenation retains the assignment, but the dynamic target is unresolved:
+there is no constant propagation. Both fixed-command examples using \texttt{shell\_exec}, including the
+one with \texttt{escapeshellarg}, receive risk 2. Thus risky capability is represented without establishing
+intent, authorisation or argument safety. A base64-encoded harmless constant is not decoded and receives
+risk 0; encoding itself is not in the risk list. Constant output is pruned, while decoded output remains.
+
+\paragraph{Framework constructs and language versions}
+Adding a namespace produces the same graph as the plain function because wrappers are flattened.
+Likewise, \texttt{try/catch/finally} becomes the same three-node chain as a linear list of those statements:
+alternative exception paths are lost. A closure has three emitted nodes and three edges, whereas its arrow
+function counterpart has two nodes and one edge; arrow bodies are not independently lowered. Parser
+acceptance therefore does not imply faithful support for every PHP construct or framework version.
+
+\paragraph{Deduplication semantics}
+The literals \texttt{'hello world'} and \texttt{'helloworld'} give different graph text but collide under
+the historical byte-level whitespace hash. The corrected pipeline hashes framed PHP lexical tokens while
+discarding only \texttt{T\_WHITESPACE}; string and comment bytes remain intact. This correction and the
+clustering correction change the protocol, so the saved classifier results remain explicitly historical
+until a complete retraining on version~2 splits is performed.

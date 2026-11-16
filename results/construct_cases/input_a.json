@@ -1,0 +1,20 @@
+{
+  "id": "input_a",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 0,
+  "n_funcs": 0,
+  "nodes": [
+    [
+      "echo $_GET['message'] ?? '';",
+      "echo $_GET['message'] ?? '';",
+      0
+    ]
+  ],
+  "edges": [],
+  "ok": true,
+  "source_sha256": "02c1dcdaf46e23380855c39105bdaf1e634e6c936a9bf5bb3424478758bfbd53",
+  "label": "benign",
+  "pair": "input",
+  "classifier_status": "not scored; this is an extractor study"
+}

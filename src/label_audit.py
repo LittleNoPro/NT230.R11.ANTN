@@ -13,6 +13,7 @@ Each file is reviewed by two of the three auditors (rotating pairs); auditors do
 Copies are plain .txt files in samples/ (outside git, never served or executed).
 """
 import json
+import hashlib
 import shutil
 import sys
 from collections import defaultdict
@@ -20,8 +21,9 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 
-from baselines import RAW
 from common import DATA, PROC, RESULTS, ROOT, RUNS, dump_json, wilson
+
+RAW = ROOT / "samples/raw"
 
 AUDITORS = ["Tu", "Vu", "Duc"]
 STRATA = {"fn": 25, "fp": 25, "risky": 25, "ws": 50, "bn": 25}
@@ -46,6 +48,8 @@ def _gat_mean_p():
 
 
 def sample():
+    if any(OUT.glob("sheet_*.csv")):
+        raise SystemExit("Audit sheets already exist; preserve this audit instead of overwriting reviewers' work")
     man = pd.read_csv(DATA / "manifests/manifest_all.csv")
     man = man[man.keep_exact == 1].drop_duplicates("sha256").set_index("sha256")
     feats = pd.read_csv(PROC / "graph_feats.csv", index_col="sha256")
@@ -91,8 +95,27 @@ def kappa(a, b):
     return (po - pe) / (1 - pe) if pe < 1 else 1.0
 
 
+def restore():
+    """Restore the original blinded copies without resampling or changing reviewer sheets.
+
+    Only this program reads the key; it prints no labels, sources or strata.
+    """
+    key = pd.read_csv(OUT / "audit_key.csv")
+    man = pd.read_csv(DATA / "manifests/manifest_all.csv")
+    man = man[man.keep_exact == 1].drop_duplicates("sha256").set_index("sha256")
+    FILES.mkdir(parents=True, exist_ok=True)
+    for r in key.itertuples():
+        code = _path(man.loc[r.sha256]).read_bytes()
+        if hashlib.sha256(code).hexdigest() != r.sha256:
+            raise RuntimeError(f"Audit source hash mismatch for {r.audit_id}")
+        destination = FILES / f"{r.audit_id}.txt"
+        if destination.exists() and destination.read_bytes() != code:
+            raise RuntimeError(f"Existing audit copy differs: {r.audit_id}")
+        destination.write_bytes(code)
+    print(f"Restored {len(key)} blinded .txt copies; reviewer sheets preserved")
+
+
 def score():
-    key = pd.read_csv(OUT / "audit_key.csv").set_index("audit_id")
     votes = defaultdict(dict)
     for a in AUDITORS:
         s = pd.read_csv(OUT / f"sheet_{a}.csv", dtype=str).fillna("")
@@ -100,8 +123,17 @@ def score():
         bad = s[~s.verdict.isin(VERDICTS)]
         if len(bad):
             sys.exit(f"sheet_{a}.csv: {len(bad)} rows without a valid verdict (e.g. {bad.audit_id.iloc[0]})")
+        if s.audit_id.duplicated().any():
+            sys.exit(f"sheet_{a}.csv: duplicate audit_id")
         for r in s.itertuples():
             votes[r.audit_id][a] = r.verdict
+    # Open the unblinding key only after every sheet has valid verdicts.
+    key = pd.read_csv(OUT / "audit_key.csv").set_index("audit_id")
+    if set(votes) != set(key.index):
+        sys.exit("Audit IDs differ from the original sample")
+    for audit_id, row in key.iterrows():
+        if set(votes[audit_id]) != set(row.auditors.split(",")):
+            sys.exit(f"{audit_id}: missing or unexpected reviewer")
     pairs = {}
     for i, a in enumerate(AUDITORS):
         for b in AUDITORS[i + 1:]:
@@ -111,6 +143,8 @@ def score():
     adj = OUT / "adjudication.csv"  # optional: audit_id,verdict after discussing disagreements
     if adj.exists():
         a = pd.read_csv(adj).set_index("audit_id").verdict.str.strip().str.lower()
+        if not set(a.index) <= set(key.index) or not a.isin(VERDICTS).all():
+            sys.exit("Invalid adjudication IDs or verdicts")
         key.loc[a.index, "audit"] = a
     key.to_csv(OUT / "audit_result.csv")
     rows, out = [], dict(pairs=pairs, strata={})
@@ -128,9 +162,10 @@ def score():
     dump_json(out, RESULTS / "label_audit.json")
     tex = ("\\begin{tabular}{@{}lrrrrl@{}}\n\\toprule\nStratum & Pool & Audited & Decided & Label wrong & "
            "Rate [95\\% CI] \\\\ \\midrule\n" + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
+    (RESULTS / "tables").mkdir(parents=True, exist_ok=True)
     (RESULTS / "tables" / "label_audit.tex").write_text(tex)
     print(json.dumps(out, indent=1))
 
 
 if __name__ == "__main__":
-    {"sample": sample, "score": score}[sys.argv[1]]()
+    {"sample": sample, "restore": restore, "score": score}[sys.argv[1]]()

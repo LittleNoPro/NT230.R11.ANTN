@@ -1,0 +1,12 @@
+{
+  "clustering": "legacy-anchor-v1",
+  "status": "historical inputs for committed model predictions",
+  "known_limitations": [
+    "Only the first member of each LSH bucket was compared to other members",
+    "Buckets larger than 2000 were skipped",
+    "Whitespace representatives were reassigned after near-duplicate union",
+    "LSH candidate search can miss similar pairs"
+  ],
+  "corrected_implementation": "minhash-all-pairs-v2",
+  "corrected_model_runs": "not run; use scripts/reproduce.sh with its isolated v2 output directory"
+}

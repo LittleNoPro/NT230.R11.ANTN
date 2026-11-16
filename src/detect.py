@@ -17,7 +17,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from common import ROOT
+from common import MODELS, ROOT
 from train_gnn import GlareNet, make_data
 
 PHP_EXT = {".php", ".phtml", ".php3", ".php4", ".php5", ".php7", ".inc"}
@@ -42,9 +42,9 @@ def extract(paths):
 class Detector:
     def __init__(self, threshold=0.5):
         from gensim.models import KeyedVectors
-        ck = torch.load(ROOT / "models/gat.pt", map_location="cpu", weights_only=False)
+        ck = torch.load(MODELS / "gat.pt", map_location="cpu", weights_only=False)
         c = ck["cfg"]
-        self.wv = KeyedVectors.load(str(ROOT / "models/fasttext.kv"))  # ~45 s: gensim rebuilds word vectors from n-grams
+        self.wv = KeyedVectors.load(str(MODELS / "fasttext.kv"))  # ~45 s: gensim rebuilds word vectors from n-grams
         self.model = GlareNet(np.zeros((1, ck["emb_dim"]), np.float32), c["variant"] == "nw", c["gnn"], c["hidden"],
                               c["layers"], c["heads"])
         self.model.load_state_dict(ck["state"], strict=False)

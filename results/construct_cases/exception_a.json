@@ -1,0 +1,39 @@
+{
+  "id": "exception_a",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 0,
+  "n_funcs": 0,
+  "nodes": [
+    [
+      "echo strlen($_GET['x'] ?? '');",
+      "echo strlen($_GET['x'] ?? '');",
+      0
+    ],
+    [
+      "echo get_class($local);",
+      "echo get_class($e);",
+      0
+    ],
+    [
+      "echo date('Y');",
+      "echo date('Y');",
+      0
+    ]
+  ],
+  "edges": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      2
+    ]
+  ],
+  "ok": true,
+  "source_sha256": "03c54e74e6c993b9606d1fb40570f039ba3f6e05a663049d6937ec00b256d707",
+  "label": "benign",
+  "pair": "exception",
+  "classifier_status": "not scored; this is an extractor study"
+}

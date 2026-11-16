@@ -1,0 +1,30 @@
+{
+  "id": "dynamic_b",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 0,
+  "n_funcs": 0,
+  "nodes": [
+    [
+      "$local = 'str' . 'len';",
+      "$f = 'str' . 'len';",
+      0
+    ],
+    [
+      "echo $local($_GET['message'] ?? '');",
+      "echo $f($_GET['message'] ?? '');",
+      0
+    ]
+  ],
+  "edges": [
+    [
+      0,
+      1
+    ]
+  ],
+  "ok": true,
+  "source_sha256": "05758778f5de27395323dc4bd7d194bc58a0b220c1523c6db529aba566337d16",
+  "label": "benign",
+  "pair": "dynamic",
+  "classifier_status": "not scored; this is an extractor study"
+}

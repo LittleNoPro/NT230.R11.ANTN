@@ -1,0 +1,20 @@
+{
+  "id": "command_a",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 0,
+  "n_funcs": 0,
+  "nodes": [
+    [
+      "echo shell_exec('printf ok');",
+      "echo shell_exec('printf ok');",
+      2
+    ]
+  ],
+  "edges": [],
+  "ok": true,
+  "source_sha256": "7d13d4b01f2eb4c1e20fcdaa8c5b6a7d645f33d21f9549286a6fadea58c28f48",
+  "label": "benign",
+  "pair": "command",
+  "classifier_status": "not scored; this is an extractor study"
+}

@@ -1,0 +1,2 @@
+<?php
+$value = $_GET['message'] ?? ''; echo htmlspecialchars($value);

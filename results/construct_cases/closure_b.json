@@ -1,0 +1,30 @@
+{
+  "id": "closure_b",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 0,
+  "n_funcs": 0,
+  "nodes": [
+    [
+      "$local = fn($local) => htmlspecialchars($local);",
+      "$f = fn($x) => htmlspecialchars($x);",
+      0
+    ],
+    [
+      "echo $local($_GET['x'] ?? '');",
+      "echo $f($_GET['x'] ?? '');",
+      0
+    ]
+  ],
+  "edges": [
+    [
+      0,
+      1
+    ]
+  ],
+  "ok": true,
+  "source_sha256": "78ef040b6d4f9f045969f753f658bea60f1a084919e882539376700307d74294",
+  "label": "benign",
+  "pair": "closure",
+  "classifier_status": "not scored; this is an extractor study"
+}

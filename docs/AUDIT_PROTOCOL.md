@@ -3,6 +3,18 @@
 Goal: estimate how often the source-level labels (`webshell` = "file from a public collection",
 `benign` = "file from a framework release") are wrong, and how many of GAT's errors are really label errors.
 
+## Current status
+
+The 150-file sample and three 100-row sheets are prepared. **All 300 reviewer decisions are pending**;
+no agreement, Cohen's kappa or label-error prevalence has been measured. The repository's label-noise discussion
+is qualitative. An automated assistant must not fill named reviewers' sheets or present an automated review as
+independent human decisions. `sample` refuses to overwrite existing sheets; `score` rejects incomplete sheets
+before opening the unblinding key. Keep the audit on the retained v1 corpus; a v2 corpus requires a separate audit.
+
+The raw copies are intentionally not in Git. After recovering the v1 corpus and checking its sample hashes,
+run `python src/label_audit.py restore` to restore the exact 150 blinded `.txt` copies without resampling or
+overwriting sheets. The program reads the mapping internally and prints no labels, sources or strata.
+
 ## What was prepared (`python src/label_audit.py sample`)
 * 150 files, sampled with a fixed seed from five strata:
 

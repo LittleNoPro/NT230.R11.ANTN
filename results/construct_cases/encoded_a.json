@@ -1,0 +1,14 @@
+{
+  "id": "encoded_a",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 1,
+  "n_funcs": 0,
+  "nodes": [],
+  "edges": [],
+  "ok": true,
+  "source_sha256": "0d74725f02212608d8397090b3b70954ad13628676aab743cd6ec1e6391454b9",
+  "label": "benign",
+  "pair": "encoded",
+  "classifier_status": "not scored; this is an extractor study"
+}

@@ -1,0 +1,2 @@
+<?php
+echo strlen($_GET['x'] ?? ''); echo get_class($e); echo date('Y');

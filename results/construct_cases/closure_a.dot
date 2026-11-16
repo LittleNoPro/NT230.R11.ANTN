@@ -1,0 +1,9 @@
+digraph ICFG {
+node [shape=box,fontname="monospace"];
+n0 [label="0: $local = function ($local) { }; [risk=0]"];
+n1 [label="1: echo $local($_GET['x'] ?? ''); [risk=0]"];
+n2 [label="2: return htmlspecialchars($local); [risk=0]"];
+n0 -> n1;
+n0 -> n2;
+n2 -> n0;
+}

@@ -1,0 +1,275 @@
+{
+  "environment": {
+    "php": "8.2.35",
+    "php_parser_commit": "715f4d25e225bc47b293a8b997fe6ce99bf987d2",
+    "lchecker_commit": "c8a3646872a937024c3dd3f1dbe346832f55ef62",
+    "extractor_sha256": "36c8d951f50ce2ddd549e621316c76a48f636d8b2c7fd43cdf40d1abd8c954fc"
+  },
+  "scope": "22 benign synthetic extractor fixtures; no detection metrics",
+  "pairs": [
+    {
+      "id": "input",
+      "title": "Raw / escaped output",
+      "cases": [
+        "input_a",
+        "input_b"
+      ],
+      "interpretation": "Per-file ICFG is not a taint graph; htmlspecialchars remains visible but sanitisation is not proved.",
+      "observed": {
+        "nodes": [
+          1,
+          1
+        ],
+        "edges": [
+          0,
+          0
+        ],
+        "max_risk": [
+          0,
+          0
+        ],
+        "normalised_graph_equal": false
+      }
+    },
+    {
+      "id": "dynamic",
+      "title": "Direct / dynamic call",
+      "cases": [
+        "dynamic_a",
+        "dynamic_b"
+      ],
+      "interpretation": "The concatenated function-name assignment remains, but no constant propagation resolves the dynamic call target.",
+      "observed": {
+        "nodes": [
+          1,
+          2
+        ],
+        "edges": [
+          0,
+          1
+        ],
+        "max_risk": [
+          0,
+          0
+        ],
+        "normalised_graph_equal": false
+      }
+    },
+    {
+      "id": "callback",
+      "title": "Direct / callback",
+      "cases": [
+        "callback_a",
+        "callback_b"
+      ],
+      "interpretation": "call_user_func receives risk 1 even with a fixed harmless callback.",
+      "observed": {
+        "nodes": [
+          1,
+          1
+        ],
+        "edges": [
+          0,
+          0
+        ],
+        "max_risk": [
+          0,
+          1
+        ],
+        "normalised_graph_equal": false
+      }
+    },
+    {
+      "id": "namespace",
+      "title": "Plain / namespaced function",
+      "cases": [
+        "namespace_a",
+        "namespace_b"
+      ],
+      "interpretation": "Flattening restores statements but discards namespace context.",
+      "observed": {
+        "nodes": [
+          2,
+          2
+        ],
+        "edges": [
+          2,
+          2
+        ],
+        "max_risk": [
+          0,
+          0
+        ],
+        "normalised_graph_equal": true
+      }
+    },
+    {
+      "id": "exception",
+      "title": "Try-catch / linear",
+      "cases": [
+        "exception_a",
+        "exception_b"
+      ],
+      "interpretation": "Flattening serialises alternative exception paths; an ICFG equality is not semantic equivalence.",
+      "observed": {
+        "nodes": [
+          3,
+          3
+        ],
+        "edges": [
+          2,
+          2
+        ],
+        "max_risk": [
+          0,
+          0
+        ],
+        "normalised_graph_equal": true
+      }
+    },
+    {
+      "id": "rename",
+      "title": "Local variable rename",
+      "cases": [
+        "rename_a",
+        "rename_b"
+      ],
+      "interpretation": "Normalisation removes local identifier differences; this does not establish preservation of data dependence.",
+      "observed": {
+        "nodes": [
+          2,
+          2
+        ],
+        "edges": [
+          1,
+          1
+        ],
+        "max_risk": [
+          0,
+          0
+        ],
+        "normalised_graph_equal": true
+      }
+    },
+    {
+      "id": "literal",
+      "title": "Whitespace inside string",
+      "cases": [
+        "literal_a",
+        "literal_b"
+      ],
+      "interpretation": "Deleting all whitespace in raw bytes can collapse semantically distinct string literals.",
+      "observed": {
+        "nodes": [
+          1,
+          1
+        ],
+        "edges": [
+          0,
+          0
+        ],
+        "max_risk": [
+          0,
+          0
+        ],
+        "normalised_graph_equal": false
+      }
+    },
+    {
+      "id": "closure",
+      "title": "Closure / arrow function",
+      "cases": [
+        "closure_a",
+        "closure_b"
+      ],
+      "interpretation": "Closures are hoisted; arrow functions are not independently lowered by this extractor.",
+      "observed": {
+        "nodes": [
+          3,
+          2
+        ],
+        "edges": [
+          3,
+          1
+        ],
+        "max_risk": [
+          0,
+          0
+        ],
+        "normalised_graph_equal": false
+      }
+    },
+    {
+      "id": "command",
+      "title": "Fixed / escaped argument",
+      "cases": [
+        "command_a",
+        "command_b"
+      ],
+      "interpretation": "Both legitimate fixed-command examples receive critical risk; risk does not encode authorisation or argument safety.",
+      "observed": {
+        "nodes": [
+          1,
+          2
+        ],
+        "edges": [
+          0,
+          1
+        ],
+        "max_risk": [
+          2,
+          2
+        ],
+        "normalised_graph_equal": false
+      }
+    },
+    {
+      "id": "encoded",
+      "title": "Plain / encoded constant",
+      "cases": [
+        "encoded_a",
+        "encoded_b"
+      ],
+      "interpretation": "Encoding alone does not receive obfuscated risk; the extractor never decodes strings into code.",
+      "observed": {
+        "nodes": [
+          0,
+          1
+        ],
+        "edges": [
+          0,
+          0
+        ],
+        "max_risk": [
+          0,
+          0
+        ],
+        "normalised_graph_equal": false
+      }
+    },
+    {
+      "id": "dataflow",
+      "title": "Different input dependencies",
+      "cases": [
+        "dataflow_a",
+        "dataflow_b"
+      ],
+      "interpretation": "Pruning the constant assignment and mapping distinct local variables to one name makes two different input dependencies share a normalised graph.",
+      "observed": {
+        "nodes": [
+          2,
+          2
+        ],
+        "edges": [
+          1,
+          1
+        ],
+        "max_risk": [
+          0,
+          0
+        ],
+        "normalised_graph_equal": true
+      }
+    }
+  ]
+}

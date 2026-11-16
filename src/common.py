@@ -1,15 +1,17 @@
 """Shared paths, metrics and statistics helpers."""
 import json
+import os
 import random
 from pathlib import Path
 
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / "data"
+DATA = Path(os.environ.get("GLARESHELL_DATA", ROOT / "data")).resolve()
 PROC = DATA / "processed"
 SPLITS = DATA / "splits"
-RESULTS = ROOT / "results"
+RESULTS = Path(os.environ.get("GLARESHELL_RESULTS", ROOT / "results")).resolve()
+MODELS = Path(os.environ.get("GLARESHELL_MODELS", ROOT / "models")).resolve()
 RUNS = RESULTS / "runs"
 
 METRICS = ["precision", "recall", "tnr", "fpr", "acc", "f1"]

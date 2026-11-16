@@ -4,19 +4,16 @@ import argparse
 
 import numpy as np
 
-from common import ROOT, SPLITS
+from common import MODELS, SPLITS
 from embeddings import _sentences, train_fasttext
 from train_gnn import graphs, parse, run
-
-MODELS = ROOT / "models"
-
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--epochs", default="120")
     a = ap.parse_args()
     import json
-    MODELS.mkdir(exist_ok=True)
+    MODELS.mkdir(parents=True, exist_ok=True)
     G = graphs()
     vocab = G["vocab_norm"]
     train = json.load(open(SPLITS / "clean_group_s0.json"))["train"]

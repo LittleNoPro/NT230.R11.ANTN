@@ -3,9 +3,8 @@ GlareShell (Feng et al., Computer Networks 2024) detects PHP webshells by turnin
 interprocedural control-flow graph of statements, embedding the statements with word-embedding models, adding a
 risk level per statement and classifying the graph with a GNN; it reports F1 = 0.9887. Neither code nor data were
 released. We re-implement the pipeline on the same static-analysis tool (with four fixes needed for modern PHP),
-rebuild the corpus from the paper's sources with provenance, hashes and near-duplicate clusters, and run every
-experiment with five seeds. On the paper's protocol we reproduce the headline result (F1 0.98 for GCN, GIN and GAT;
-FastText as best embedding) but not the finer claims: GAT is not better than GCN or GIN, the dimension curve is
+rebuild the corpus from the paper's sources with provenance, hashes and near-duplicate clusters, and run the main configurations with five seeds (sweeps: three). On a paper-style protocol we reproduce the headline result (F1 0.98 for GCN, GIN and GAT;
+FastText as best embedding) but not the finer claims: no significant advantage of GAT over GCN or GIN is established, the dimension curve is
 flat, and the ablation of normalisation and risk weights is within noise. Beyond the paper we find that
 77\% of test webshells in a random split have a near-duplicate in training, that a TF-IDF + logistic-regression
 baseline beats every GNN (F1 0.997), that twelve graph statistics without code semantics already reach F1 0.92, that
@@ -13,7 +12,7 @@ the false-positive rate quadruples on unseen benign projects (1.7\%) -- at a 0.1
 6\% of unseen webshells versus 64\% for the text baseline -- and that the final model flags 10 of 12
 hand-written legitimate standalone scripts as webshells. Adding five small benign applications to training cuts
 the GAT false-positive rate on all benign test files from 2.5\% to 0.9\% without a significant loss of recall, but
-8 of the 12 scripts stay flagged. High scores on this benchmark mostly measure the difference
+8 of the 12 scripts stay flagged. Recall on the 18 novel webshells falls from 0.644 to 0.544 (inconclusive). All classifier numbers use historical v1 splits; corrected v2 clustering has not been retrained. A controlled 22-file benign construct artifact exposes information lost by the graph. High scores on this benchmark mostly measure the difference
 between large framework code and webshell collections, not malicious behaviour.
 \end{abstract}
 

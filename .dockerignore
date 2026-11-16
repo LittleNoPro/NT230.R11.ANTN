@@ -6,3 +6,6 @@ report/
 .git/
 **/__pycache__/
 *.zip
+tools/
+reproductions/
+.venv/

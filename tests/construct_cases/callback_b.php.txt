@@ -1,0 +1,2 @@
+<?php
+echo call_user_func('strlen', $_GET['message'] ?? '');

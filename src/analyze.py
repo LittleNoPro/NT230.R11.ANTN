@@ -1,9 +1,11 @@
 """Aggregate runs into report tables (results/tables/*.tex), figures (report/figures/*.pdf),
 an error taxonomy and results/summary.json."""
 import glob
+import argparse
 import json
 import re
 from collections import Counter, defaultdict
+from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -14,7 +16,7 @@ import pandas as pd
 from common import DATA, PROC, RESULTS, ROOT, RUNS, SPLITS, mean_ci, metrics, wilson
 
 TAB = RESULTS / "tables"
-FIG = ROOT / "report" / "figures"
+FIG = ROOT / "report" / "figures" if RESULTS == ROOT / "results" else RESULTS / "figures"
 SHOW = ["precision", "recall", "tnr", "acc", "f1"]
 PAPER_T2 = {"glove": [0.8905, 0.9335, 0.8862, 0.9078, 0.9136], "w2v_c": [0.9216, 0.9595, 0.8998, 0.9303, 0.9373],
             "w2v_s": [0.9024, 0.9552, 0.8986, 0.9116, 0.9355], "d2v_m": [0.9138, 0.9496, 0.8794, 0.9201, 0.9309],
@@ -31,7 +33,7 @@ NAMES = {"glove": "GloVe", "w2v_c": "W2V-c", "w2v_s": "W2V-s", "d2v_m": "D2V-m",
 def load(pattern):
     out = []
     for f in sorted(glob.glob(str(RUNS / f"{pattern}.json"))):
-        out.append(json.load(open(f)))
+        out.append(json.loads(Path(f).read_text()))
     return out
 
 
@@ -430,8 +432,8 @@ def hard_benign(S):
     if not hard.exists():
         return
     mh = pd.read_csv(hard)
-    cg = set(json.load(open(SPLITS / "clean_group_s0.json"))["test"])
-    groups = {"clean test: webshell recall": ("cg", 1), "clean test: FPR": ("cg", 0),
+    groups = {"all benign files: FPR": ("all", 0), "all webshells: recall": ("all", 1),
+              "clean test: webshell recall": ("cg", 1), "clean test: FPR": ("cg", 0),
               "unseen large projects (\\xs): FPR": ("xs", 0), "18 novel webshells: recall": ("xs", 1)}
     for src, name in (("opnsense__core", "OPNsense core"), ("osTicket__osTicket", "osTicket"), ("mybb__mybb", "MyBB")):
         groups[f"unseen small app {name}: FPR"] = (src, 0)
@@ -439,15 +441,27 @@ def hard_benign(S):
     groups["Tiny File Manager: $p$(webshell)"] = ("prasathmani__tinyfilemanager", None)
     hsrc = dict(zip(mh.sha256, mh.source))
     out, rows = {}, []
+    paired = {}
     for model, pat in (("GAT", "hard_{k}_gat_s?"), ("TF-IDF + LR", "bl_{k}_tfidf_lr_s?")):
         res = {}
+        seed_metrics = {}
         for k in ("base", "aug"):
             per = defaultdict(list)
+            seed_metrics[k] = {}
             for r in load(pat.format(k=k)):
+                seed = r["cfg"]["seed"]
+                cg = set(json.loads((SPLITS / f"clean_group_s{seed}.json").read_text())["test"])
+                xs = set(json.loads((SPLITS / f"cross_source_s{seed}.json").read_text())["test"])
                 d = pd.DataFrame(dict(sha=r["pred"]["sha"], y=r["pred"]["y"], p=r["pred"]["p"]))
-                d["g"] = [hsrc.get(x, "cg" if x in cg else "xs") for x in d.sha]
+                unknown = set(d.sha) - cg - xs - set(hsrc)
+                if unknown or cg & xs:
+                    raise ValueError(f"invalid hard-benign test membership, seed {seed}")
+                d["g"] = [hsrc[x] if x in hsrc else ("cg" if x in cg else "xs") for x in d.sha]
+                seed_metrics[k][seed] = {}
                 for gname, (g, y) in groups.items():
-                    sub = d[d.g == g] if y is None else d[(d.g == g) & (d.y == y)]
+                    sub = d if g == "all" else d[d.g == g]
+                    if y is not None:
+                        sub = sub[sub.y == y]
                     if not len(sub):
                         continue
                     if y is None:
@@ -457,13 +471,24 @@ def hard_benign(S):
                     else:  # recall (webshells) or FPR (benign)
                         v = float((sub.p >= .5).mean())
                     per[gname].append(v)
+                    seed_metrics[k][seed][gname] = v
             res[k] = {g: mean_ci(v) for g, v in per.items()}
         out[model] = res
+        from scipy.stats import ttest_rel
+        common_seeds = sorted(set(seed_metrics["base"]) & set(seed_metrics["aug"]))
+        paired[model] = {}
+        for g in groups:
+            a = [seed_metrics["base"][sd][g] for sd in common_seeds]
+            b = [seed_metrics["aug"][sd][g] for sd in common_seeds]
+            diff = np.asarray(b) - np.asarray(a)
+            pv = float(ttest_rel(b, a).pvalue) if np.std(diff) > 0 else (1.0 if np.all(diff == 0) else 0.0)
+            paired[model][g] = dict(diff_aug_minus_base=mean_ci(diff), p_paired_t=pv, seeds=common_seeds)
     for g in groups:  # one row per test group: GAT base/aug, TF-IDF base/aug
         d = 1 if "probe" in g else (3 if "recall" in g or "$p$" in g else 4)
         rows.append([g] + [fmt(out[m][k][g], d) for m in out for k in ("base", "aug")])
     n_files = mh[mh.subset != "hard_train"].groupby("source").size().to_dict()
-    S["hard_benign"] = dict(results=out, n_test_files=n_files, n_train_added=int((mh.subset == "hard_train").sum()))
+    S["hard_benign"] = dict(results=out, paired=paired, n_test_files=n_files,
+                           n_train_added=int((mh.subset == "hard_train").sum()), grouping="per-seed explicit membership")
     latex_table(rows, ["Test group", "GAT base", "GAT aug", "TF-IDF+LR base", "TF-IDF+LR aug"],
                 TAB / "hard_benign.tex", n_text=1)
 
@@ -474,14 +499,18 @@ def timing(S):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--saved-only", action="store_true", help="regenerate analyses needing only committed manifests, splits and predictions")
+    args = ap.parse_args()
     FIG.mkdir(parents=True, exist_ok=True)
-    S = defaultdict(dict)
-    for fn in (leakage_and_data, table2, table4, ablation, sweeps, protocols, per_source_fpr, confusion, error_taxonomy,
-               significance, operating_points, origin_loo, hard_benign, timing):
-        try:
-            fn(S)
-        except Exception as e:  # keep producing the other artefacts while runs are still in progress
-            print(f"[{fn.__name__}] skipped: {type(e).__name__}: {e}")
+    summary = RESULTS / "summary.json"
+    S = defaultdict(dict, json.loads(summary.read_text()) if args.saved_only and summary.exists() else {})
+    fns = (table2, table4, ablation, sweeps, protocols, per_source_fpr, confusion,
+           significance, operating_points, origin_loo, hard_benign)
+    if not args.saved_only:
+        fns = (leakage_and_data,) + fns + (error_taxonomy, timing)
+    for fn in fns:
+        fn(S)  # fail visibly; do not silently publish a partially regenerated summary
     (RESULTS / "summary.json").write_text(json.dumps(S, indent=1, default=float))
     print("wrote", RESULTS / "summary.json")
 

@@ -1,0 +1,20 @@
+{
+  "id": "callback_b",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 0,
+  "n_funcs": 0,
+  "nodes": [
+    [
+      "echo call_user_func('strlen', $_GET['message'] ?? '');",
+      "echo call_user_func('strlen', $_GET['message'] ?? '');",
+      1
+    ]
+  ],
+  "edges": [],
+  "ok": true,
+  "source_sha256": "ae478dfc3c60d0ec49633d4d1145cf10202c22e821f617ac95d63a72942ddfcb",
+  "label": "benign",
+  "pair": "callback",
+  "classifier_status": "not scored; this is an extractor study"
+}

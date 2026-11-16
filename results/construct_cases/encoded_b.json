@@ -1,0 +1,20 @@
+{
+  "id": "encoded_b",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 0,
+  "n_funcs": 0,
+  "nodes": [
+    [
+      "echo base64_decode('aGVsbG8=');",
+      "echo base64_decode('aGVsbG8=');",
+      0
+    ]
+  ],
+  "edges": [],
+  "ok": true,
+  "source_sha256": "86975b928e147f62d4ba33ca5ce2feed25c1826b179e5dae4abdb5e3150483a4",
+  "label": "benign",
+  "pair": "encoded",
+  "classifier_status": "not scored; this is an extractor study"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "literal_a",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 0,
+  "n_funcs": 0,
+  "nodes": [
+    [
+      "echo strlen('hello world');",
+      "echo strlen('hello world');",
+      0
+    ]
+  ],
+  "edges": [],
+  "ok": true,
+  "source_sha256": "b93e5baf32b317796492e864a46529a05d53fcfc3c78c825e8513090f37cf043",
+  "label": "benign",
+  "pair": "literal",
+  "classifier_status": "not scored; this is an extractor study"
+}

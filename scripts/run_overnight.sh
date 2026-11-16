@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# Resume all GNN experiments (finished runs in results/runs are skipped), then rebuild tables/figures.
-# Runs detached with nohup so closing the terminal does not stop it. Log: results/logs/overnight.log
-cd "$(dirname "$0")/.." || exit 1
-source ~/miniforge3/etc/profile.d/conda.sh && conda activate glareshell
-cd src
-nohup bash -c 'python -u experiments.py table2 ablation table4 clean cross sweep 2>&1 | grep --line-buffered -v Warning; python analyze.py; python train_final.py 2>&1 | grep -v -i warn; echo ALL_DONE' \
-  >> ../results/logs/overnight.log 2>&1 &
-echo "started (pid $!). Progress: ls results/runs | grep -vc ^bl_   (target ~110)"
+# Launch in the currently activated Python 3.11 training environment.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+RUN_ROOT="${GLARESHELL_RUN_ROOT:-$ROOT/reproductions/v2}"
+mkdir -p "$RUN_ROOT"
+nohup bash "$ROOT/scripts/reproduce.sh" > "$RUN_ROOT/run.log" 2>&1 &
+echo "Started PID $!; log: $RUN_ROOT/run.log"

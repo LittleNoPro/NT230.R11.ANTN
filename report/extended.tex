@@ -7,6 +7,7 @@
 \usepackage[caption=false,font=footnotesize]{subfig}  % IEEE-recommended; caption/subcaption break IEEE captions
 \usepackage{adjustbox}
 \usepackage{stfloats}  % allow [b] placement for two-column floats
+\usepackage{placeins}  % keep pending figures/tables out of the bibliography
 \usepackage{cite}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{enumitem}
@@ -18,6 +19,7 @@
 \usepackage{cleveref}
 
 \setlist{nosep,leftmargin=*}
+\setlist[description]{style=unboxed,leftmargin=0pt,labelindent=0pt,labelwidth=0pt}
 % pack floats more tightly (many two-column tables)
 \renewcommand{\topfraction}{0.9}\renewcommand{\dbltopfraction}{0.9}
 \renewcommand{\floatpagefraction}{0.8}\renewcommand{\dblfloatpagefraction}{0.8}
@@ -50,6 +52,7 @@
 \input{sections/intro}
 \input{sections/background}
 \input{sections/method}
+\input{sections/constructs}
 \input{sections/dataset}
 \input{sections/setup}
 \input{sections/results}
@@ -57,6 +60,7 @@
 \input{sections/ethics}
 \input{sections/conclusion}
 
+\FloatBarrier
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
 

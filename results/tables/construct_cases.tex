@@ -1,0 +1,16 @@
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Pair (A/B) & Nodes & Edges & Max risk & Same graph \\ \midrule
+Raw / escaped output & 1/1 & 0/0 & 0/0 & no \\
+Direct / dynamic call & 1/2 & 0/1 & 0/0 & no \\
+Direct / callback & 1/1 & 0/0 & 0/1 & no \\
+Plain / namespaced function & 2/2 & 2/2 & 0/0 & yes \\
+Try-catch / linear & 3/3 & 2/2 & 0/0 & yes \\
+Local variable rename & 2/2 & 1/1 & 0/0 & yes \\
+Whitespace inside string & 1/1 & 0/0 & 0/0 & no \\
+Closure / arrow function & 3/2 & 3/1 & 0/0 & no \\
+Fixed / escaped argument & 1/2 & 0/1 & 2/2 & no \\
+Plain / encoded constant & 0/1 & 0/0 & 0/0 & no \\
+Different input dependencies & 2/2 & 1/1 & 0/0 & yes \\
+\bottomrule
+\end{tabular}

@@ -40,12 +40,18 @@ def ws_hash(b):
 
 
 def manifest():
+    protocol = DATA / "manifests/hash_protocol.json"
+    if not protocol.exists() or json.loads(protocol.read_text())["version"] != "php-token-whitespace-v2":
+        raise RuntimeError("Build a v2 main manifest first; do not mix legacy byte hashes with token hashes")
     old = pd.read_csv(DATA / "manifests/manifest_all.csv", usecols=["sha256", "ws_hash"])
     seen_ws = set(old.ws_hash)
     rows = []
+    from build_manifest import token_hashes
     projects = [(p, RAW / p, "hard_train" if p in TRAIN_PROJECTS else "hard_test") for p in TRAIN_PROJECTS + TEST_PROJECTS]
     projects.append(("probe_benign", ROOT / "tests/probe_benign", "probe"))
     for name, d, subset in projects:
+        if not d.is_dir():
+            raise FileNotFoundError(f"Missing hard-benign source: {d}")
         rev = subprocess.run(["git", "-C", str(d), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip() \
             if (d / ".git").exists() else ""
         for f in sorted(d.rglob("*")):
@@ -54,9 +60,10 @@ def manifest():
             b = f.read_bytes()
             if b"<?" not in b:
                 continue
-            rows.append(dict(sha256=hashlib.sha256(b).hexdigest(), ws_hash=ws_hash(b), label="benign", subset=subset,
+            rows.append(dict(sha256=hashlib.sha256(b).hexdigest(), ws_hash="", label="benign", subset=subset,
                              source=name, relpath=str(f.relative_to(d)), size=len(b), revision=rev, path=str(f)))
     m = pd.DataFrame(rows)
+    m["ws_hash"] = token_hashes(m.path.tolist())
     n0 = len(m)
     m = m[~m.ws_hash.isin(seen_ws)].drop_duplicates("ws_hash")  # no overlap with the main corpus or within this track
     parts = []

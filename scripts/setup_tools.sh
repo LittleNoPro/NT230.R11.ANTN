@@ -6,6 +6,7 @@ mkdir -p "$ROOT/tools" && cd "$ROOT/tools"
 [ -d LChecker ] || git clone -q https://github.com/cuhk-seclab/LChecker
 git -C LChecker checkout -q c8a3646872a937024c3dd3f1dbe346832f55ef62
 [ -d vendor/PHP-Parser ] || git clone -q --branch v4.19.4 https://github.com/nikic/PHP-Parser vendor/PHP-Parser
+git -C vendor/PHP-Parser checkout -q 715f4d25e225bc47b293a8b997fe6ce99bf987d2
 mkdir -p LChecker/src/vendor
 cat > LChecker/src/vendor/autoload.php <<'PHP'
 <?php

@@ -5,7 +5,7 @@
 |---|---|---|
 | sha256 | hex | SHA-256 of file bytes (sample id everywhere) |
 | md5 | hex | MD5 (used to recover provenance inside the Cyc1e183 aggregate, which names files by MD5) |
-| ws_hash | hex | SHA-256 of the bytes with all whitespace removed |
+| ws_hash | hex | v1: SHA-256 after deleting all byte whitespace; v2: SHA-256 of framed PHP lexical tokens excluding T_WHITESPACE, preserving string/comment bytes; see manifests/hash_protocol.json |
 | label | `webshell`/`benign` | source-level label (docs/LABEL_GUIDE.md) |
 | subset | `paper`/`heldout` | paper Table 1 source vs. extension source |
 | source | str | `owner__repo` |
@@ -27,6 +27,16 @@ contains both labels.
 
 ## data/splits/<protocol>_s<seed>.json
 `{"train": [sha256], "val": [sha256], "test": [sha256]}` for protocol ∈ {paper_random, clean_group, cross_source}, seed ∈ 0..4.
+
+`data/splits/protocol.json` identifies legacy v1 or corrected v2 clustering. `results/provenance.json` seals
+historical input and prediction hashes. The v2 run directory is separate: no new split may be paired with old
+predictions. `sources.lock.tsv` contains directory, repository, full commit, history mode and license reference.
+
+## Controlled construct artifact
+
+`tests/construct_cases/manifest.json`: source, CC0 license, limitations, cases with id/file/pair/label/label_basis/split,
+and pair interpretations. `results/construct_cases/<id>.json`: extractor fields plus source SHA-256 and explicit
+classifier status. `summary.json` records tool revisions, extractor hash and observed pair comparisons.
 
 ## data/processed/icfg/part-*.jsonl (git-ignored: contains code fragments)
 One JSON per file: `id`, `ok`, `err`, `parse_error`, `truncated`, `n_pruned`, `n_funcs`, `secs`,

@@ -12,62 +12,15 @@ candidate generation, exact Jaccard verification, union-find).
 """
 import json
 import pickle
-from collections import defaultdict
 
 import numpy as np
 import pandas as pd
 
 from common import DATA, PROC, SPLITS
+from clustering import VERSION, near_dup_clusters
 
 N_BENIGN_PAPER = 10375
 SEEDS = [0, 1, 2, 3, 4]
-JACCARD = 0.8
-N_PERM, BANDS = 128, 32
-P = (1 << 61) - 1
-
-
-def minhash(sets):
-    rng = np.random.default_rng(12345)
-    a = rng.integers(1, P, N_PERM, dtype=np.uint64)
-    b = rng.integers(0, P, N_PERM, dtype=np.uint64)
-    sig = np.full((len(sets), N_PERM), np.iinfo(np.uint64).max, dtype=np.uint64)
-    for i, s in enumerate(sets):
-        if s:
-            x = np.fromiter(s, dtype=np.uint64)[:, None]
-            sig[i] = ((a * x + b) % np.uint64(P)).min(0)
-    return sig
-
-
-def near_dup_clusters(keys, sets):
-    parent = list(range(len(keys)))
-
-    def find(i):
-        while parent[i] != i:
-            parent[i] = parent[parent[i]]
-            i = parent[i]
-        return i
-
-    sig = minhash(sets)
-    r = N_PERM // BANDS
-    n_pairs = 0
-    for band in range(BANDS):
-        buckets = defaultdict(list)
-        chunk = sig[:, band * r:(band + 1) * r]
-        for i in range(len(keys)):
-            if sets[i]:
-                buckets[chunk[i].tobytes()].append(i)
-        for idx in buckets.values():
-            if len(idx) < 2 or len(idx) > 2000:   # giant buckets = trivial shared statements
-                continue
-            for j in idx[1:]:
-                a, b = find(idx[0]), find(j)
-                if a == b:
-                    continue
-                s1, s2 = sets[idx[0]], sets[j]
-                if len(s1 & s2) / len(s1 | s2) >= JACCARD:
-                    parent[b] = a
-                    n_pairs += 1
-    return np.array([find(i) for i in range(len(keys))]), n_pairs
 
 
 def group_split(df, seed, frac=(0.8, 0.1, 0.1)):
@@ -86,6 +39,9 @@ def group_split(df, seed, frac=(0.8, 0.1, 0.1)):
 
 
 def main():
+    protocol = SPLITS / "protocol.json"
+    if protocol.exists() and json.loads(protocol.read_text()).get("clustering", "").startswith("legacy"):
+        raise RuntimeError("Refusing to overwrite historical v1 splits; use scripts/reproduce.sh")
     SPLITS.mkdir(parents=True, exist_ok=True)
     G = pickle.load(open(PROC / "graphs.pkl", "rb"))["graphs"]
     man = pd.read_csv(DATA / "manifests/manifest_all.csv")
@@ -93,11 +49,11 @@ def main():
     man["y"] = (man.label == "webshell").astype(int)
     keys = man.sha256.tolist()
     sets = [frozenset(G[k]["norm"].tolist()) for k in keys]
-    cl, n_pairs = near_dup_clusters(keys, sets)
-    # empty graphs are only grouped by whitespace hash
-    man["cluster"] = [f"c{c}" if s else f"w{h}" for c, s, h in zip(cl, sets, man.ws_hash)]
-    ws_rep = man.groupby("ws_hash").cluster.transform("first")       # whitespace dups share a cluster
-    man["cluster"] = ws_rep
+    cl, n_pairs = near_dup_clusters(keys, sets, man.ws_hash.tolist())
+    # Whitespace and near-duplicate equivalence already share one union-find.
+    man["cluster"] = [f"c{c}" for c in cl]
+    (SPLITS / "protocol.json").write_text(json.dumps({"clustering": VERSION,
+        "candidate_search": "approximate MinHash-LSH; all bucket pairs verified", "seeds": SEEDS}, indent=2) + "\n")
     mixed = man.groupby("cluster").label.nunique()
     man["cluster_mixed"] = man.cluster.map(mixed > 1).astype(int)
     man[["sha256", "label", "subset", "source", "cluster", "cluster_mixed"]].to_csv(DATA / "manifests/clusters.csv", index=False)
@@ -109,7 +65,11 @@ def main():
     rng = np.random.default_rng(2024)
     ben = paper[paper.y == 0]
     # benign subsample to the paper's size, proportional per source
-    take = (ben.groupby("source").size() * N_BENIGN_PAPER / len(ben)).round().astype(int)
+    scaled = ben.groupby("source").size() * N_BENIGN_PAPER / len(ben)
+    take = np.floor(scaled).astype(int)
+    # Largest remainders guarantee exactly N_BENIGN_PAPER (v1 rounding yielded 10,376).
+    extra = N_BENIGN_PAPER - int(take.sum())
+    take.loc[(scaled - take).sort_values(ascending=False, kind="stable").index[:extra]] += 1
     ben_sub = pd.concat([d.sample(min(len(d), take[s]), random_state=2024) for s, d in ben.groupby("source")])
     P_exact = pd.concat([paper[paper.y == 1], ben_sub])
     P_clean = P_exact[P_exact.keep_ws == 1]

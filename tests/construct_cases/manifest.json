@@ -1,0 +1,290 @@
+{
+  "name": "PHP-Construct-22",
+  "license": "CC0-1.0",
+  "source": "original synthetic fixtures written for this project",
+  "purpose": "controlled extractor study; excluded from model train/validation/test",
+  "limitations": [
+    "all labels are benign by construction; unsuitable for estimating detector precision or recall",
+    "single-file toy code has no authentication or framework runtime context",
+    "only static parser output is observed"
+  ],
+  "cases": [
+    {
+      "id": "input_a",
+      "file": "input_a.php.txt",
+      "pair": "input",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "input_b",
+      "file": "input_b.php.txt",
+      "pair": "input",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "dynamic_a",
+      "file": "dynamic_a.php.txt",
+      "pair": "dynamic",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "dynamic_b",
+      "file": "dynamic_b.php.txt",
+      "pair": "dynamic",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "callback_a",
+      "file": "callback_a.php.txt",
+      "pair": "callback",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "callback_b",
+      "file": "callback_b.php.txt",
+      "pair": "callback",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "namespace_a",
+      "file": "namespace_a.php.txt",
+      "pair": "namespace",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "namespace_b",
+      "file": "namespace_b.php.txt",
+      "pair": "namespace",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "exception_a",
+      "file": "exception_a.php.txt",
+      "pair": "exception",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "exception_b",
+      "file": "exception_b.php.txt",
+      "pair": "exception",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "rename_a",
+      "file": "rename_a.php.txt",
+      "pair": "rename",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "rename_b",
+      "file": "rename_b.php.txt",
+      "pair": "rename",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "literal_a",
+      "file": "literal_a.php.txt",
+      "pair": "literal",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "literal_b",
+      "file": "literal_b.php.txt",
+      "pair": "literal",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "closure_a",
+      "file": "closure_a.php.txt",
+      "pair": "closure",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "closure_b",
+      "file": "closure_b.php.txt",
+      "pair": "closure",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "command_a",
+      "file": "command_a.php.txt",
+      "pair": "command",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "command_b",
+      "file": "command_b.php.txt",
+      "pair": "command",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "encoded_a",
+      "file": "encoded_a.php.txt",
+      "pair": "encoded",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "encoded_b",
+      "file": "encoded_b.php.txt",
+      "pair": "encoded",
+      "label": "benign",
+      "label_basis": "original toy program; no attacker command or executable payload; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "dataflow_a",
+      "file": "dataflow_a.php.txt",
+      "pair": "dataflow",
+      "label": "benign",
+      "label_basis": "original escaped-output toy program; parsed only",
+      "split": "analysis_only"
+    },
+    {
+      "id": "dataflow_b",
+      "file": "dataflow_b.php.txt",
+      "pair": "dataflow",
+      "label": "benign",
+      "label_basis": "original escaped-output toy program; parsed only",
+      "split": "analysis_only"
+    }
+  ],
+  "pairs": [
+    {
+      "id": "input",
+      "title": "Raw / escaped output",
+      "cases": [
+        "input_a",
+        "input_b"
+      ],
+      "interpretation": "Per-file ICFG is not a taint graph; htmlspecialchars remains visible but sanitisation is not proved."
+    },
+    {
+      "id": "dynamic",
+      "title": "Direct / dynamic call",
+      "cases": [
+        "dynamic_a",
+        "dynamic_b"
+      ],
+      "interpretation": "The concatenated function-name assignment remains, but no constant propagation resolves the dynamic call target."
+    },
+    {
+      "id": "callback",
+      "title": "Direct / callback",
+      "cases": [
+        "callback_a",
+        "callback_b"
+      ],
+      "interpretation": "call_user_func receives risk 1 even with a fixed harmless callback."
+    },
+    {
+      "id": "namespace",
+      "title": "Plain / namespaced function",
+      "cases": [
+        "namespace_a",
+        "namespace_b"
+      ],
+      "interpretation": "Flattening restores statements but discards namespace context."
+    },
+    {
+      "id": "exception",
+      "title": "Try-catch / linear",
+      "cases": [
+        "exception_a",
+        "exception_b"
+      ],
+      "interpretation": "Flattening serialises alternative exception paths; an ICFG equality is not semantic equivalence."
+    },
+    {
+      "id": "rename",
+      "title": "Local variable rename",
+      "cases": [
+        "rename_a",
+        "rename_b"
+      ],
+      "interpretation": "Normalisation removes local identifier differences; this does not establish preservation of data dependence."
+    },
+    {
+      "id": "literal",
+      "title": "Whitespace inside string",
+      "cases": [
+        "literal_a",
+        "literal_b"
+      ],
+      "interpretation": "Deleting all whitespace in raw bytes can collapse semantically distinct string literals."
+    },
+    {
+      "id": "closure",
+      "title": "Closure / arrow function",
+      "cases": [
+        "closure_a",
+        "closure_b"
+      ],
+      "interpretation": "Closures are hoisted; arrow functions are not independently lowered by this extractor."
+    },
+    {
+      "id": "command",
+      "title": "Fixed / escaped argument",
+      "cases": [
+        "command_a",
+        "command_b"
+      ],
+      "interpretation": "Both legitimate fixed-command examples receive critical risk; risk does not encode authorisation or argument safety."
+    },
+    {
+      "id": "encoded",
+      "title": "Plain / encoded constant",
+      "cases": [
+        "encoded_a",
+        "encoded_b"
+      ],
+      "interpretation": "Encoding alone does not receive obfuscated risk; the extractor never decodes strings into code."
+    },
+    {
+      "id": "dataflow",
+      "title": "Different input dependencies",
+      "cases": [
+        "dataflow_a",
+        "dataflow_b"
+      ],
+      "interpretation": "Pruning the constant assignment and mapping distinct local variables to one name makes two different input dependencies share a normalised graph."
+    }
+  ]
+}

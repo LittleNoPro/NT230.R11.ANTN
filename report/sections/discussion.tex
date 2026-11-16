@@ -9,7 +9,7 @@ Colours: \repro{reproduced}, \improved{improved / extended}, \notrepro{not repro
 \begin{tabularx}{\linewidth}{@{}p{0.30\linewidth}Xl@{}}\toprule
 Claim / item & Our evidence & Verdict \\ \midrule
 ICFG + embedding + GNN detects webshells with F1 $\approx$ 0.95--0.99 (Tables 2, 4) &
-  F1 0.90--0.98 (Table 2 setting), 0.980--0.983 (Table 4 setting) on the paper's protocol, 5 seeds & \repro{Reproduced} \\
+  F1 0.90--0.98 (Table 2 setting), 0.980--0.983 (Table 4 setting) on a paper-style protocol, 5 seeds & \repro{Reproduced} \\
 FastText is the best embedding (Table 2) & 0.977 $\pm$ 0.009, best of six by $>$0.04 & \repro{Reproduced} \\
 Ranking of the other five embeddings & within 0.036 F1, overlapping CIs; order differs & \notrepro{Not reproduced} \\
 GAT is the best GNN (Table 4) & GCN 0.981, GIN 0.983, GAT 0.980; paired tests $p=0.79$ / $0.48$ & \notrepro{Not reproduced} \\
@@ -25,13 +25,20 @@ Shortcut probes & graph statistics alone F1 0.92; 10/12 benign standalone script
 Statistical rigour & paired $t$ + exact McNemar tests on identical test sets (\Cref{tab:signif}) & \improved{Extended} \\
 Deployment operating points & ROC/PR; recall at 0.1\% FPR on unseen projects: GAT 0.06 vs.\ TF-IDF 0.64 & \improved{Extended} \\
 Leave-one-collection-out split & 3 collections, 77--222 unseen webshells each (\Cref{tab:loo}) & \improved{Extended} \\
-Training on small benign applications & FPR on all benign test files: GAT 2.5\% $\to$ 0.9\% ($p=0.006$), recall unchanged; still 8/12 probes flagged (\Cref{tab:hard}) & \improved{Improved} \\
+Training on small benign applications & FPR on all benign test files: GAT 2.5\% $\to$ 0.9\% ($p=0.006$), overall recall difference inconclusive; still 8/12 probes flagged (\Cref{tab:hard}) & \improved{Improved} \\
 Standalone detector / directory monitor & \texttt{src/detect.py} & \improved{Extended} \\
 \bottomrule
 \end{tabularx}
 \end{table*}
 
 \subsection{Threats to validity}\label{sec:threats}
+\paragraph{Protocol correction and evidence boundaries}
+The saved predictions belong to legacy version~1. Corrected clustering and lexical whitespace hashing change
+split membership, so corrected model performance remains unmeasured until retraining. Our updated hard-benign
+analysis fixes a separate per-seed grouping error using the existing predictions; it does not retrain a model.
+The label audit is pending. Controlled construct observations (\Cref{sec:constructs}) establish representation
+losses, not detector error rates or semantic equivalence of PHP programs.
+
 \paragraph{Internal validity (does our pipeline do what the paper did?)}
 \begin{itemize}
   \item \emph{Unreleased implementation.} ICFG construction above LChecker's CFG builder, the pruning rules, the

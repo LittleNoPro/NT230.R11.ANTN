@@ -1,0 +1,2 @@
+<?php
+namespace Demo; function greet($x) { return htmlspecialchars($x); } echo greet($_GET['message'] ?? '');

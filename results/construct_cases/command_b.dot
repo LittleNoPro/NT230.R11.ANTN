@@ -1,0 +1,6 @@
+digraph ICFG {
+node [shape=box,fontname="monospace"];
+n0 [label="0: $local = $_GET['message'] ?? ''; [risk=0]"];
+n1 [label="1: echo shell_exec('printf %s ' . escapeshellarg($local)); [risk=2]"];
+n0 -> n1;
+}

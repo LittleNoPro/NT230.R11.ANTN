@@ -10,9 +10,11 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
+from common import DATA, PROC
+
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "samples" / "raw"
-OUT = ROOT / "data" / "processed" / "icfg"
+OUT = PROC / "icfg"
 SRC_DIRS = {
     "Cyc1e183__PHP-Webshell-Dataset": RAW / "webshell" / "Cyc1e183__PHP-Webshell-Dataset" / "extracted",
 }
@@ -48,7 +50,7 @@ def main():
     ap.add_argument("--missing", action="store_true", help="re-run only samples absent from existing parts, 1 file/process")
     a = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
-    m = pd.read_csv(ROOT / "data/manifests/manifest_all.csv")
+    m = pd.read_csv(DATA / "manifests/manifest_all.csv")
     m = m[m.keep_exact == 1].sort_values("sha256")
     start = 0
     if a.missing:  # a PHP segfault (deeply nested expressions) kills a whole chunk; isolate per file

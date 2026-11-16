@@ -1,0 +1,4 @@
+digraph ICFG {
+node [shape=box,fontname="monospace"];
+n0 [label="0: echo strlen('helloworld'); [risk=0]"];
+}

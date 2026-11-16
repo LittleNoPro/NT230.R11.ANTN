@@ -3,14 +3,14 @@ GlareShell (Feng et al., Computer Networks 2024) detects PHP webshells by turnin
 interprocedural control-flow graph (ICFG) of statements, embedding the statements, adding a risk level per statement
 and classifying the graph with a GNN; it reports F1 = 0.9887. Neither code nor data were released. We re-implement
 the pipeline on the same static-analysis tool (with four fixes needed for modern PHP), rebuild the corpus from the
-paper's sources with provenance and near-duplicate clusters, and run every experiment with five seeds and paired
-significance tests. On the paper's protocol we reproduce the headline result (F1 0.98) but not the finer claims: GAT is
+paper's sources with provenance and near-duplicate clusters, and run the main configurations with five seeds and paired
+significance tests. On a paper-style protocol we reproduce the headline result (F1 0.98) but not the finer claims: GAT is
 not better than GCN or GIN, and normalisation and risk weights do not significantly help. Beyond the paper, 77\% of
 test webshells in a random split have a near-duplicate in training, a TF-IDF + logistic-regression baseline beats
 every GNN, and on four unseen benign projects the false-positive rate quadruples; at a 0.1\% alarm budget GAT finds
 only 6\% of unseen webshells (text baseline: 64\%), and 10 of 12 hand-written legitimate scripts are flagged. Adding
 five small benign applications to training cuts the GAT false-positive rate from 2.5\% to 0.9\% without a significant
-loss of recall. High scores on this benchmark mostly measure the difference between framework code and webshell
+loss of overall recall, although novel-set recall falls by ten points. Classifier results retain historical v1 splits; corrected v2 training and the independent label audit are pending. High scores on this benchmark mostly measure the difference between framework code and webshell
 collections, not malicious behaviour.
 \end{abstract}
 
@@ -63,10 +63,10 @@ the sources of confusion we analyse (orange).}
 \toprule
 Feature & Content & Malicious signal it can carry \\ \midrule
 Statement text & One PHP statement / branch condition, pretty-printed & API used, request input, payload strings \\
-Normalisation & local variables $\to$ \texttt{\$local}, user functions/methods $\to$ \texttt{user\_define}, numbers $\to$ \texttt{im} & removes names/passwords, keeps built-ins and strings \\
+Normalisation & local variables $\to$ \texttt{\$local}, user functions/methods $\to$ \texttt{user\_define}, numbers $\to$ \texttt{im} & removes local names/numbers; retains built-ins and truncated strings \\
 Embedding & 100-d vector of the normalised statement (W2V / FastText / GloVe / D2V) & co-occurrence of risky statements \\
 Risk level & one-hot: 2 = \emph{critical} (\texttt{system, exec, shell\_exec, passthru, popen, proc\_open, pcntl\_exec}, backticks); 1 = \emph{obfuscated} (\texttt{eval, assert, preg\_replace, create\_function, call\_user\_func*}, array/sort callbacks, \dots); 0 = normal & explicit dangerous capability \\
-Edges & intra-procedural control flow + call/return edges between functions (ICFG) & how input reaches the sink \\
+Edges & intra-procedural control flow + call/return edges between functions (ICFG) & statement order and call structure; no explicit taint relation \\
 Graph & mean of final node states (Eq.~6 of~\paperref{}) & whole-file behaviour \\
 \bottomrule
 \end{tabularx}
@@ -75,7 +75,7 @@ Graph & mean of final node states (Eq.~6 of~\paperref{}) & whole-file behaviour 
 \paragraph{Threat model} \emph{Attacker}: remote, already able to write a file into the web root, may obfuscate but
 does not adapt to the specific model. \emph{Defender}: sees only the PHP source at creation/modification time -- no
 execution traces, HTTP logs or file-system context -- and must decide per file before it runs. \emph{Out of scope}:
-memory-resident and non-PHP shells, adaptive attacks, legitimately deployed admin tools. \Cref{fig:concept} relates the
+memory-resident and non-PHP shells, adaptive attacks, inferring deployment authorisation from one source file. \Cref{fig:concept} relates the
 attack chain, the observation surface and the sources of confusion we analyse; \Cref{tab:features} lists exactly what
 GlareShell observes per file. The feature view predicts where it should fail: benign frameworks are full of
 \emph{obfuscated}-level calls (\texttt{call\_user\_func\_array} for dispatch, \texttt{usort} with closures); webshells that
@@ -138,15 +138,30 @@ statements (15\% of webshells, 0.4\% of benign files). Embeddings use Gensim def
 PyTorch Geometric with the paper's hyper-parameters (Table~2 setting: 2-layer GCN, hidden 10; Table~3 optimum:
 3 layers, batch 256, 120 epochs); model selection uses validation F1.
 
+\paragraph{Controlled construct evidence}
+We also parse 22 original benign fixtures (CC0, analysis-only; exact nodes and edges are committed).
+Two different input dependencies collapse to the same two-node graph after constant pruning and local-variable
+normalisation. Namespaced/plain functions and try-catch/linear code also become identical graphs; a harmless callback
+still gets risk~1. There are no explicit def-use or taint edges. The extended report provides all eleven pairs and
+an annotated graph; these observations carry no new classifier predictions.
+
 \section{Dataset: GlareShell-R}\label{sec:dataset}
 \paragraph{Sources}
-We cloned every repository of the paper's Table~1 at pinned revisions. \texttt{ysrc/webshell-sample} has been deleted;
+We rebuilt the available sources of the paper's Table~1; exact references are now locked in \texttt{sources.lock.tsv}. \texttt{ysrc/webshell-sample} has been deleted;
 its files survive only inside the Cyc1e183 aggregate~\cite{cyc1e183} (2,917 webshells from 17 collections, named by MD5,
 no origin), which dominates the webshell side. Benign files come from WordPress, Drupal, Laravel, PHPMailer and doorGets.
-After exact-hash deduplication we obtain \textbf{3,097 webshells} (paper: 3,104, so the paper used exact
-deduplication) and subsample 10,375 benign files as in the paper. For generalisation we add four \emph{held-out} benign
+After exact-hash deduplication we obtain \textbf{3,097 webshells} (paper: 3,104, which does not establish identical samples or
+deduplication) and proportionally subsample 10,376 benign files (target 10,375; rounding in v1). For generalisation we add four \emph{held-out} benign
 projects (Laravel framework, phpMyAdmin, Joomla, Matomo) and two held-out webshell collections. Every file has a SHA-256,
-source, revision and path in the manifest; a data card, schema and label guide are in \texttt{docs/}.
+source and path in the manifest; revisions are documented in the source lock; a data card, schema and label guide are in \texttt{docs/}.
+
+\paragraph{Protocol version and label status}
+All classifier results below use the retained version~1 manifests and splits. A review found that its LSH
+implementation compared bucket members only with the first member and that its whitespace hash also removed
+spaces inside literals. The corrected version~2 pipeline is isolated in \texttt{reproductions/v2}; it has not
+been retrained here. The 77\% figure measures overlap in recorded v1 clusters, not exhaustive duplicate detection.
+A blinded 150-file label audit is prepared, but all 300 reviewer decisions remain pending; no agreement or
+population label-error rate is claimed.
 
 \paragraph{Extraction is label-dependent}
 \Cref{tab:extraction} shows that webshells are older, less well-formed and much larger: 4.5\% contain syntax errors,
@@ -198,10 +213,10 @@ semantics, a probe for corpus artefacts.
 \Cref{tab:repro} compares our F1 with the paper. The headline is reproduced: all three GNNs reach F1 $\approx$ 0.98
 (paper 0.968--0.989), and FastText is the best embedding by a significant margin (paired $p=0.007$, McNemar
 significant in 5/5 seeds). The finer claims are not: (i) the five other embeddings lie within 0.036 F1 with
-overlapping intervals and a different order; (ii) GAT is \emph{not} the best GNN -- GAT vs.\ GCN $p=0.79$, vs.\ GIN
+overlapping intervals and a different order; (ii) GAT has no statistically established advantage -- GAT vs.\ GCN $p=0.79$, vs.\ GIN
 $p=0.48$; (iii) F1 is flat over embedding dimensions 20--120 (0.978--0.981) and windows 2--7, with no rise-then-fall (\Cref{fig:sweeps});
 (iv) normalisation and risk weights do not significantly help ($p=0.10$ on \pr), and on \cg{} raw statements without
-either are nominally best ($p=0.07$, \Cref{fig:ablation}); normalisation removes names and literals that help to recognise near-duplicates in a random split. \Cref{tab:signif} lists all paired tests.
+either are nominally best ($p=0.07$, \Cref{fig:ablation}); normalisation removes local names and numeric literals that help to recognise near-duplicates in a random split. \Cref{tab:signif} lists all paired tests.
 
 \begin{table}[!t]\centering\footnotesize
 \caption{F1 on \pr{} (5 seeds) vs.\ the paper. Top: Table 2 (embeddings, 2-layer GCN); bottom: Table 4 (FastText).}\label{tab:repro}
@@ -258,9 +273,9 @@ Rule: any risky call & 0.637$\pm$.010 & 0.551$\pm$.077 & 9.98\% & 0.22 \\ \botto
 
 \paragraph{Unseen benign projects and alarm budgets}
 On \xs{} the GNN false-positive rate quadruples, from 0.4\% to 1.7\% (Joomla worst at 3\%), while TF-IDF + LR stays at
-0.35\%. The threshold-free view is worse (\Cref{fig:roc}): with a 0.1\% alarm budget, the realistic budget of a
+0.35\%. The threshold-free view is worse (\Cref{fig:roc}): with a 0.1\% alarm budget, an illustrative budget for a
 file-upload monitor, GAT recovers only \textbf{6\%} of the unseen webshells (average precision 0.11), TF-IDF + LR
-\textbf{64\%} (AP 0.61). The GNN's false positives on unseen projects are \emph{confident}: they rank above most
+\textbf{64\%} (AP 0.61). These are test-set oracle thresholds, hence optimistic upper bounds rather than calibrated deployment results. The GNN's false positives on unseen projects are \emph{confident}: they rank above most
 webshells, so no threshold separates them.
 
 \begin{figure}[!t]\centering
@@ -303,6 +318,25 @@ Flagged & \textbf{10/12} & \textbf{6/12} & \\ \bottomrule
 \end{tabular}
 \end{table*}
 
+\begin{table*}[!t]\centering\footnotesize
+\caption{Verdict per claim of the paper and per addition of this work. \repro{Green}: reproduced;
+\notrepro{red}: not reproduced; \improved{blue}: improved or extended.}\label{tab:verdict}
+\begin{tabularx}{\linewidth}{@{}p{0.31\linewidth}Xl@{}}\toprule
+Claim / item & Our evidence & Verdict \\ \midrule
+ICFG + embedding + GNN reaches F1 $\approx$ 0.95--0.99 & F1 0.980--0.983 on a paper-style protocol, 5 seeds & \repro{Reproduced} \\
+FastText is the best embedding & 0.977, best of six, $p=0.007$ & \repro{Reproduced} \\
+GAT is the best GNN & GCN 0.981, GIN 0.983, GAT 0.980; $p=0.79$ / $0.48$ & \notrepro{Not reproduced} \\
+Dimension / window shape (Fig.~6--7) & flat; window 5 nominal maximum only & \notrepro{Not reproduced} \\
+Normalisation + risk weights help (Fig.~8) & $p=0.10$ (\pr), reversed on \cg{} ($p=0.07$) & \notrepro{Not reproduced} \\
+GNN beats text approaches & TF-IDF + LR better on every protocol, significant & \notrepro{Not reproduced} \\
+Local extraction throughput & 11\,ms extraction per file; no server deployment tested & \repro{Reproduced} \\ \midrule
+Extractor for PHP~8 code & four LChecker fixes, documented & \improved{Improved} \\
+Corpus, leakage control, new protocols & GlareShell-R; 77\% leakage; \cg, \xs, \texttt{loo} & \improved{Extended} \\
+Deployment view & FPR $\times$4 on unseen projects; 6\% recall at 0.1\% FPR; 10/12 probes flagged & \improved{Extended} \\
+Training on small benign applications & FPR 2.5\% $\to$ 0.9\% ($p=0.006$), overall recall difference inconclusive & \improved{Improved} \\ \bottomrule
+\end{tabularx}
+\end{table*}
+
 \paragraph{Error analysis}
 Missed webshells are mostly files the pipeline cannot see into: on \pr{} 75\% have an empty ICFG (PHP~4-era or
 malformed files, encoded droppers whose payload is a string) and 86\% contain no call from the risk lists. About half
@@ -315,21 +349,22 @@ stubs. False positives are driven by \emph{distance from the benign training pro
 The analysis suggests a fix: show the model benign code that resembles the deployment. We added five small procedural
 PHP applications to training (YOURLS, FluxBB, DokuWiki, Cacti, Adminer; 2,511 files) and kept four others for testing
 only (OPNsense core, osTicket, MyBB, Tiny File Manager; 2,709 files), removing any file that also occurs in the main
-corpus. Base and augmented models are evaluated on the \emph{same} 13,041 files (\cg{} and \xs{} tests, held-out apps,
+corpus. Within each seed, base and augmented models are evaluated on matched sets of 13,041 files (\cg{} and \xs{} tests, held-out apps,
 probes). Pooled over all benign test files, the GAT false-positive rate falls from 2.5\% to 0.9\% (paired $p=0.006$)
 with no significant change in recall ($p=0.25$); TF-IDF + LR falls from 1.7\% to 0.5\% but loses 2.5 recall points
-(\Cref{tab:hard}). The gain carries over to the large unseen projects (1.45\% $\to$ 0.63\%). It is not a cure: GAT
+(\Cref{tab:hard}). On the 18 novel webshells, GAT recall instead falls from 0.644 to 0.544 ($p=0.22$; inconclusive with this small set). The gain carries over to the large unseen projects (1.54\% $\to$ 0.67\%). It is not a cure: GAT
 still flags 8 of the 12 probe scripts, and Tiny File Manager, a legitimate single-file file manager, stays flagged.
 
 \begin{table}[!t]\centering\scriptsize
-\caption{Base (\cg{} training) vs.\ aug (+5 small benign apps); same 13,041 test files, mean over 5 seeds.}\label{tab:hard}
+\caption{Base (\cg{} training) vs.\ aug (+5 small benign apps); matched base/aug test sets (13,041 files per seed), mean over 5 seeds.}\label{tab:hard}
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}lrrrr@{}}\toprule
  & \multicolumn{2}{c}{GAT} & \multicolumn{2}{c}{TF-IDF + LR} \\
 Test group & base & aug & base & aug \\ \midrule
 All benign files: FPR & 2.52\% & \textbf{0.92\%} & 1.71\% & \textbf{0.55\%} \\
 All webshells: recall & 0.926 & 0.908 & 0.971 & 0.946 \\
-Unseen large projects: FPR & 1.45\% & 0.63\% & 0.34\% & 0.15\% \\
+18 novel webshells: recall & 0.644 & 0.544 & 0.767 & 0.622 \\
+Unseen large projects: FPR & 1.54\% & 0.67\% & 0.35\% & 0.15\% \\
 osTicket: FPR & 7.35\% & 1.32\% & 12.26\% & 3.67\% \\
 OPNsense core: FPR & 5.67\% & 2.70\% & 0.24\% & 0.14\% \\
 MyBB: FPR & 3.81\% & 1.09\% & 1.86\% & 0.19\% \\
@@ -340,24 +375,7 @@ Tiny File Manager $p$ & 0.95 & 0.63 & 0.71 & 0.53 \\ \bottomrule
 
 \section{Discussion}\label{sec:discussion}
 \Cref{tab:verdict} summarises the verdicts.
-\begin{table*}[!t]\centering\footnotesize
-\caption{Verdict per claim of the paper and per addition of this work. \repro{Green}: reproduced;
-\notrepro{red}: not reproduced; \improved{blue}: improved or extended.}\label{tab:verdict}
-\begin{tabularx}{\linewidth}{@{}p{0.31\linewidth}Xl@{}}\toprule
-Claim / item & Our evidence & Verdict \\ \midrule
-ICFG + embedding + GNN reaches F1 $\approx$ 0.95--0.99 & F1 0.980--0.983 on the paper's protocol, 5 seeds & \repro{Reproduced} \\
-FastText is the best embedding & 0.977, best of six, $p=0.007$ & \repro{Reproduced} \\
-GAT is the best GNN & GCN 0.981, GIN 0.983, GAT 0.980; $p=0.79$ / $0.48$ & \notrepro{Not reproduced} \\
-Dimension / window shape (Fig.~6--7) & flat; window 5 nominal maximum only & \notrepro{Not reproduced} \\
-Normalisation + risk weights help (Fig.~8) & $p=0.10$ (\pr), reversed on \cg{} ($p=0.07$) & \notrepro{Not reproduced} \\
-GNN beats text approaches & TF-IDF + LR better on every protocol, significant & \notrepro{Not reproduced} \\
-Cheap enough for online monitoring & 11\,ms extraction + ms scoring per file & \repro{Reproduced} \\ \midrule
-Extractor for PHP~8 code & four LChecker fixes, documented & \improved{Improved} \\
-Corpus, leakage control, new protocols & GlareShell-R; 77\% leakage; \cg, \xs, \texttt{loo} & \improved{Extended} \\
-Deployment view & FPR $\times$4 on unseen projects; 6\% recall at 0.1\% FPR; 10/12 probes flagged & \improved{Extended} \\
-Training on small benign applications & FPR 2.5\% $\to$ 0.9\% ($p=0.006$), recall unchanged & \improved{Improved} \\ \bottomrule
-\end{tabularx}
-\end{table*}
+
 
 \paragraph{Threats to validity}
 \emph{Internal}: the ICFG construction, risk lists and statement format are our reading of an unreleased implementation;
@@ -372,8 +390,7 @@ only the alarm-budget operating points use test-set thresholds, which is optimis
 Samples are only parsed, never executed or served; \texttt{samples/} and derived code fragments are git-ignored, the
 Docker image runs with \texttt{--network none} and read-only samples, and graders receive a password-protected archive
 (\texttt{infected}) with checksums. The repository contains pinned fetch scripts, the hash manifest, all splits, every
-run's configuration and per-file predictions, a Dockerfile and \texttt{reproduce.sh}; \texttt{analyze.py} regenerates
-every table and figure. The 125 GNN runs took about 5.3 GPU-hours on a laptop GPU.
+run's configuration and per-file predictions, a Dockerfile and \texttt{reproduce.sh}. Saved-run analysis is available without raw samples; extraction statistics require those samples. Historical inputs are sealed by checksums. The 125 GNN runs took about 5.3 GPU-hours on a laptop GPU.
 
 \section{Conclusion}\label{sec:conclusion}
 GlareShell's headline F1 of about 0.98 is reproducible without the authors' code or data; its finer conclusions are not,

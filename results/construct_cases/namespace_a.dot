@@ -1,0 +1,7 @@
+digraph ICFG {
+node [shape=box,fontname="monospace"];
+n0 [label="0: echo user_define($_GET['message'] ?? ''); [risk=0]"];
+n1 [label="1: return htmlspecialchars($local); [risk=0]"];
+n0 -> n1;
+n1 -> n0;
+}

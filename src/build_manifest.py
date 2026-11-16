@@ -11,14 +11,17 @@ Subsets:
 """
 import csv
 import hashlib
+import json
 import os
 import re
 import subprocess
 from pathlib import Path
 
+from common import DATA
+
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "samples" / "raw"
-OUT = ROOT / "data" / "manifests" / "manifest_all.csv"
+OUT = DATA / "manifests" / "manifest_all.csv"
 PHP_EXT = re.compile(r"\.(php[3-7]?|phtml|inc)$", re.I)
 
 # (label, source dir, subset, priority for dedup: lower wins)
@@ -61,31 +64,46 @@ def git_first_seen(repo: Path) -> dict:
 
 
 def ws_norm_hash(b: bytes) -> str:
+    """Historical v1 heuristic; retained for interpreting old artifacts only."""
     return hashlib.sha256(re.sub(rb"\s+", b"", b)).hexdigest()
 
 
+def token_hashes(paths):
+    completed = subprocess.run(["php", "-d", "short_open_tag=On", str(ROOT / "src/php/token_hash.php")],
+                               input=json.dumps([str(p) for p in paths]), text=True,
+                               capture_output=True, check=True, timeout=300)
+    hashes = json.loads(completed.stdout)
+    if len(hashes) != len(paths):
+        raise RuntimeError("token hash count differs from source file count")
+    return hashes
+
+
 def main():
+    protocol = DATA / "splits/protocol.json"
+    if OUT.exists() and protocol.exists() and json.loads(protocol.read_text()).get("clustering", "").startswith("legacy"):
+        raise RuntimeError("Historical v1 inputs are sealed; use scripts/reproduce.sh or set GLARESHELL_DATA to a fresh directory")
     rows = []
     md5_origin = {}  # md5 -> first non-aggregate webshell repo containing it
     for label, rel, subset, prio in SOURCES:
         base = RAW / rel
+        if not base.is_dir():
+            raise FileNotFoundError(f"Missing source directory: {base}; run scripts/fetch_sources.sh first")
         repo_root = base if (base / ".git").exists() else base.parent
         dates = git_first_seen(repo_root)
-        for p in sorted(base.rglob("*")):
-            if not p.is_file() or ".git" in p.parts:
-                continue
-            if not PHP_EXT.search(p.name):
-                continue
+        paths = [p for p in sorted(base.rglob("*")) if p.is_file() and ".git" not in p.parts and PHP_EXT.search(p.name)]
+        for p, token_hash in zip(paths, token_hashes(paths)):
             b = p.read_bytes()
             md5 = hashlib.md5(b).hexdigest()
-            relp = str(p.relative_to(repo_root))
+            # All consumers resolve paths relative to SOURCES' extraction directory.
+            # For the Cyc1e183 zip this differs from the Git checkout root.
+            relp = str(p.relative_to(base))
             src = rel.split("/")[1]
             if label == "webshell" and prio > 0:
                 md5_origin.setdefault(md5, src)
             rows.append(dict(
                 label=label, source=src, subset=subset, prio=prio, relpath=relp,
-                sha256=hashlib.sha256(b).hexdigest(), md5=md5, ws_hash=ws_norm_hash(b),
-                size=len(b), is_php=int(b"<?" in b), first_seen=dates.get(relp, ""),
+                sha256=hashlib.sha256(b).hexdigest(), md5=md5, ws_hash=token_hash,
+                size=len(b), is_php=int(b"<?" in b), first_seen=dates.get(str(p.relative_to(repo_root)), ""),
             ))
     # provenance for the aggregate (Cyc1e183 names files by md5, no origin column)
     for r in rows:
@@ -105,7 +123,13 @@ def main():
                 if key == "ws_hash":
                     g["dup_of"] = "" if i == 0 else grp[0]["sha256"][:16]
                     g["label_conflict"] = int(len(labels) > 1)
+    for row in rows:
+        if row["label_conflict"]:
+            row["keep_exact"] = row["keep_ws"] = 0
     OUT.parent.mkdir(parents=True, exist_ok=True)
+    (OUT.parent / "hash_protocol.json").write_text(json.dumps({
+        "version": "php-token-whitespace-v2", "ws_hash": "SHA-256 of framed PHP tokens excluding T_WHITESPACE; strings and comments retained"
+    }, indent=2) + "\n")
     cols = ["sha256", "md5", "ws_hash", "label", "subset", "source", "origin", "relpath", "size", "is_php",
             "first_seen", "dup_of", "label_conflict", "keep_exact", "keep_ws", "prio"]
     with open(OUT, "w", newline="") as f:

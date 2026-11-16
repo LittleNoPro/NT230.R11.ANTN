@@ -1,0 +1,2 @@
+<?php
+try { echo strlen($_GET['x'] ?? ''); } catch (Exception $e) { echo get_class($e); } finally { echo date('Y'); }

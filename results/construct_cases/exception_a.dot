@@ -1,0 +1,8 @@
+digraph ICFG {
+node [shape=box,fontname="monospace"];
+n0 [label="0: echo strlen($_GET['x'] ?? ''); [risk=0]"];
+n1 [label="1: echo get_class($local); [risk=0]"];
+n2 [label="2: echo date('Y'); [risk=0]"];
+n0 -> n1;
+n1 -> n2;
+}

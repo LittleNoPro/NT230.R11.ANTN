@@ -1,0 +1,30 @@
+{
+  "id": "dataflow_b",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 1,
+  "n_funcs": 0,
+  "nodes": [
+    [
+      "$local = $_GET['message'] ?? '';",
+      "$tainted = $_GET['message'] ?? '';",
+      0
+    ],
+    [
+      "echo htmlspecialchars($local);",
+      "echo htmlspecialchars($safe);",
+      0
+    ]
+  ],
+  "edges": [
+    [
+      0,
+      1
+    ]
+  ],
+  "ok": true,
+  "source_sha256": "80a685b5fc4c7f02e468423fd0c7f2809e58958e32b067ae00fc690771e9324a",
+  "label": "benign",
+  "pair": "dataflow",
+  "classifier_status": "not scored; this is an extractor study"
+}

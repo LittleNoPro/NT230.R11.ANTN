@@ -14,7 +14,7 @@ methods lie within 0.036 F1 of each other with CI half-widths of 0.012--0.025, a
 evidence. All methods trade recall for precision in our runs (TNR $\geq$ 0.978, recall 0.86--0.97); the missed
 webshells are analysed in \Cref{sec:errors}.
 
-\begin{table*}[!t]\centering\footnotesize
+\begin{table*}[tp]\centering\footnotesize
 \caption{Paper Table 2 replication: embedding methods with a 2-layer GCN (hidden 10, batch 10) on \pr, 5 seeds.
 $\Delta$F1 = ours $-$ paper.}\label{tab:t2}
 \begin{fittable}\input{../results/tables/table2.tex}\end{fittable}
@@ -23,12 +23,12 @@ $\Delta$F1 = ours $-$ paper.}\label{tab:t2}
 \paragraph{GNN architectures (paper Table 4)}
 With FastText and the Table-3 hyper-parameters (\Cref{tab:t4}) all three GNNs reach F1 $\approx$ 0.98, again close
 to the paper (0.968--0.989). The paper's claim that \emph{GAT is the best architecture} is not reproduced: GCN
-(0.981 $\pm$ 0.008), GIN (0.983 $\pm$ 0.002) and GAT (0.980 $\pm$ 0.012) are statistically indistinguishable
+(0.981 $\pm$ 0.008), GIN (0.983 $\pm$ 0.002) and GAT (0.980 $\pm$ 0.012) have no statistically resolved difference
 (paired tests in \Cref{tab:signif}), and
 GAT has the largest seed variance. The Table-3 setting (3 layers, batch 256, up to 120 epochs) improves on the Table-2
 setting only marginally for GCN (0.981 vs.\ 0.977).
 
-\begin{table*}[!t]\centering\footnotesize
+\begin{table*}[tp]\centering\footnotesize
 \caption{Paper Table 4 replication: GNN architectures with FastText and the Table-3 hyper-parameters on \pr, 5 seeds.}\label{tab:t4}
 \begin{fittable}\input{../results/tables/table4.tex}\end{fittable}
 \end{table*}
@@ -38,10 +38,10 @@ The paper reports that F1 first rises with the embedding dimension and then fall
 size 5 is optimal. In our sweep (\Cref{fig:sweeps}) F1 is flat: between 0.978 and 0.981 for dimensions 20--120 and
 between 0.975 and 0.981 for windows 2--7, with CIs of $\pm$0.01--0.02. Window 5 is the nominal maximum, consistent
 with the paper, but no setting is significantly better than another; a 20-dimensional embedding is as good as a
-100-dimensional one. We therefore do \emph{not} reproduce the rise-then-fall shape of Fig.~6.
+100-dimensional one within the resolution of these experiments. We therefore do \emph{not} reproduce the rise-then-fall shape of Fig.~6.
 
-\begin{figure*}[!t]\centering
-\includegraphics[width=0.72\linewidth]{figures/sweeps.pdf}
+\begin{figure*}[tp]\centering
+\includegraphics[width=0.64\linewidth]{figures/sweeps.pdf}
 \caption{Embedding dimension (left) and FastText context window (right) vs.\ F1, FastText + GCN on \pr, 3 seeds
 (cf.\ paper Fig.~6 and 7). Error bars: 95\% CI.}\label{fig:sweeps}
 \end{figure*}
@@ -52,30 +52,30 @@ with the paper, but no setting is significantly better than another; a 20-dimens
 confidence intervals, so the claim that ``both mechanisms improve all metrics'' is not statistically supported; recall
 actually drops slightly with the risk weights. On the leakage-controlled \cg{} split with GAT the effect reverses: raw
 statements without normalisation or risk weights are best (0.973 $\pm$ 0.009) and normalisation alone is worst
-(0.955 $\pm$ 0.008). Our reading: normalisation removes variable names and literals, which in a random split help to
+(0.955 $\pm$ 0.008). Our reading: normalisation removes variable names and numeric literals, which in a random split help to
 recognise near-duplicates of training webshells; once near-duplicates are removed from the test set, the
 GNN has less to memorise, and the risk one-hot cannot compensate.
 
-\begin{table*}[!t]\centering\footnotesize
+\begin{table*}[tp]\centering\footnotesize
 \caption{Ablation of normalisation (n) and risk weights (w), FastText, 5 seeds (cf.\ paper Fig.~8).
 \pr: Table-2 GCN; \cg: Table-3 GAT.}\label{tab:ablation}
 \begin{fittable}\input{../results/tables/ablation.tex}\end{fittable}
 \end{table*}
 
-\begin{figure*}[!t]\centering
-\includegraphics[width=0.78\linewidth]{figures/ablation.pdf}
+\begin{figure*}[tp]\centering
+\includegraphics[width=0.70\linewidth]{figures/ablation.pdf}
 \caption{Ablation of normalisation and risk weights on both protocols (cf.\ paper Fig.~8).}\label{fig:ablation}
 \end{figure*}
 
 \paragraph{Paired significance tests}
 Overlapping confidence intervals are only a heuristic, so \Cref{tab:signif} tests the key comparisons directly. Within a
 seed, all models see the identical test set, so we pair them: a paired $t$-test on the per-seed F1 difference, and an
-exact McNemar test on the per-file decisions of each seed. The tests confirm the verdicts above: GAT is not better than
+exact McNemar test on the per-file decisions of each seed. The tests do not establish a GAT advantage over
 GCN ($p=0.79$) or GIN ($p=0.48$); normalisation and risk weights make no significant difference on either protocol
 ($p=0.10$ and $0.07$); FastText is significantly better than the runner-up embedding ($p=0.007$, McNemar significant
 in 5/5 seeds); and TF-IDF + LR is significantly better than GAT on every protocol.
 
-\begin{table*}[!t]\centering\footnotesize
+\begin{table*}[tp]\centering\footnotesize
 \caption{Paired significance tests (5 seeds, same test files). ``Significant'': paired-$t$ $p<0.05$.}\label{tab:signif}
 \input{../results/tables/significance.tex}
 \end{table*}
@@ -101,7 +101,7 @@ available from the shape of the ICFG. Conversely, rules built from GlareShell's 
 (F1 0.36--0.64): a webshell is not identified by \emph{which} functions it calls, and many benign framework files call
 the same functions (10\% FPR for ``any risky call'').
 
-\begin{table*}[!t]\centering\footnotesize
+\begin{table*}[tp]\centering\footnotesize
 \caption{GNNs and baselines under the three protocols (5 seeds). \xs: trained on the five paper benign projects
 and Cyc1e183, tested on 9,091 files of four unseen benign projects and 18 webshells from collections not in the paper
 corpus.}\label{tab:protocols}
@@ -114,7 +114,7 @@ files per run; with seed 0 the 95\% Wilson interval is 0.8--1.2\% for GAT and 2.
 project (\Cref{tab:perproject}): Joomla is worst (3\%), Laravel best (0.8\%). TF-IDF + LR stays at 0.35\%, showing
 that the jump is not a property of the projects alone but of what the GNN has learned.
 
-\begin{table*}[!t]\centering\footnotesize
+\begin{table*}[tp]\centering\footnotesize
 \caption{False-positive rate per unseen benign project (\xs, 5 seeds).}\label{tab:perproject}
 \input{../results/tables/per_source_fpr.tex}
 \end{table*}
@@ -128,12 +128,12 @@ GAT recovers only 6\% of the unseen webshells (AP 0.11), whereas TF-IDF + LR kee
 show that the GNNs' false positives on unseen projects are \emph{confident}: they sit above most webshells, so no
 threshold separates them.
 
-\begin{table*}[!t]\centering\footnotesize
+\begin{table*}[tp]\centering\footnotesize
 \caption{Ranking quality and recall at fixed false-positive budgets (5 seeds; thresholds chosen on the test set).}\label{tab:oppoints}
 \input{../results/tables/operating_points.tex}
 \end{table*}
 
-\begin{figure*}[!t]\centering
+\begin{figure*}[tp]\centering
 \includegraphics[width=0.75\linewidth]{figures/roc.pdf}
 \caption{ROC curves (log FPR axis), seed 0. Left: \cg; right: \xs{} (9,091 unseen benign files, 18 unseen webshells).}\label{fig:roc}
 \end{figure*}
@@ -152,7 +152,7 @@ public collection, together with all near-duplicate clusters it touches (\Cref{t
 public collections share code: holding out a collection is not holding out a \emph{family}, and recall on genuinely
 new webshells is better estimated by the (small) \xs{} set.
 
-\begin{table*}[!t]\centering\footnotesize
+\begin{table*}[tp]\centering\footnotesize
 \caption{Leave-one-collection-out (5 seeds). Recall on the held-out collection's webshells; FPR on the 1,037 \cg{}
 benign test files.}\label{tab:loo}
 \input{../results/tables/origin_loo.tex}
@@ -169,7 +169,7 @@ three-line \texttt{hello.php}; TF-IDF + LR trained on the same split flags 6 (\C
 have learned a large part of the population difference -- small, procedural, reads \texttt{\$\_GET/\$\_POST} --
 rather than malicious behaviour, and the GNN more so than the text baseline.
 
-\begin{table*}[!t]\centering\footnotesize
+\begin{table*}[tp]\centering\footnotesize
 \caption{Webshell probability for 12 hand-written benign standalone scripts (\texttt{tests/probe\_benign/});
 models trained on \cg, seed 0. Bold: flagged ($p \geq 0.5$).}\label{tab:probe}
 \begin{tabular}{@{}lrrl@{}}\toprule
@@ -197,22 +197,21 @@ deployment. We added nine small, procedural PHP applications (pinned commits in 
 \emph{Test only:} OPNsense core, osTicket, MyBB and Tiny File Manager (2,709 files). Files whose
 whitespace-normalised hash occurs in the main corpus were removed, and the main corpus, vocabulary ids and earlier
 results are unchanged (\texttt{src/hard\_benign.py}). \emph{Base} trains on \cg{} as before; \emph{aug} adds the
-five training apps. Both are evaluated on the \emph{same} 13,041 files: the \cg{} and \xs{} test sets, the
+five training apps. Within each seed, base and aug are evaluated on matched sets of 13,041 files (clean membership varies between seeds): the \cg{} and \xs{} test sets, the
 held-out small apps and the 12 probe scripts. Configuration: FastText + GAT with the Table-3 settings, and
 TF-IDF + LR, 5 seeds each.
 
 \Cref{tab:hard} shows the result. Pooled over all benign test files, the GAT false-positive rate drops from 2.5\% to
 0.9\% (paired $t$, $p=0.006$) and that of TF-IDF + LR from 1.7\% to 0.5\% ($p<0.001$). The gain is largest on the
 held-out small apps (osTicket: 7.4\% $\to$ 1.3\% for GAT) and also carries over to the large unseen projects of
-\xs{} (1.45\% $\to$ 0.63\%). GAT recall on webshells does not change significantly (0.93 $\to$ 0.91, $p=0.25$).
-TF-IDF loses 2.5 points ($p<0.001$) but halves its flagged probes (6 $\to$ 3). The fix helps but does not solve the problem: GAT still flags 8 of the 12
+\xs{} (1.54\% $\to$ 0.67\%). GAT recall on webshells does not change significantly (0.93 $\to$ 0.91, $p=0.25$).
+On the 18 novel webshells, GAT recall falls from 0.644 to 0.544 ($p=0.22$), so the overall recall test does not establish preserved sensitivity under source shift. TF-IDF loses 2.5 points ($p<0.001$) but halves its flagged probes (6 $\to$ 3). The fix helps but does not solve the problem: GAT still flags 8 of the 12
 probe scripts. Tiny File Manager, a legitimate single-file file manager whose features match a webshell's, drops
 from $p=0.95$ to 0.63 but stays flagged. Five extra projects narrow the population gap; closing it would take
 benign training data at the scale and diversity of the webshell collections.
 
-\begin{table*}[!t]\centering\footnotesize
-\caption{Improvement experiment: base (\cg{} training) vs.\ aug (+5 small benign applications); same 13,041 test
-files, mean $\pm$ 95\% CI over 5 seeds. Recall: higher is better; FPR and ``flagged'': lower is better.}\label{tab:hard}
+\begin{table*}[tp]\centering\footnotesize
+\caption{Improvement experiment: base (\cg{} training) vs.\ aug (+5 small benign applications); matched base/aug test sets (13,041 files per seed), mean $\pm$ 95\% CI over 5 seeds. Recall: higher is better; FPR and ``flagged'': lower is better.}\label{tab:hard}
 \input{../results/tables/hard_benign.tex}
 \end{table*}
 
@@ -246,7 +245,7 @@ false-positive behaviour is driven by \emph{distance from the benign training pr
 \begin{fittable}\input{../results/tables/errors.tex}\end{fittable}
 \end{table}
 
-\begin{figure*}[!t]\centering
+\begin{figure*}[tp]\centering
 \includegraphics[width=0.85\linewidth]{figures/confusion.pdf}
 \caption{Confusion matrices of GAT, seed 0, on the three protocols.}\label{fig:confusion}
 \end{figure*}

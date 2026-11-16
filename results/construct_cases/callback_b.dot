@@ -1,0 +1,4 @@
+digraph ICFG {
+node [shape=box,fontname="monospace"];
+n0 [label="0: echo call_user_func('strlen', $_GET['message'] ?? ''); [risk=1]"];
+}

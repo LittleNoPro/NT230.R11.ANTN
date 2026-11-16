@@ -1,0 +1,30 @@
+{
+  "id": "rename_b",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 0,
+  "n_funcs": 0,
+  "nodes": [
+    [
+      "$local = $_GET['message'] ?? '';",
+      "$value = $_GET['message'] ?? '';",
+      0
+    ],
+    [
+      "echo htmlspecialchars($local);",
+      "echo htmlspecialchars($value);",
+      0
+    ]
+  ],
+  "edges": [
+    [
+      0,
+      1
+    ]
+  ],
+  "ok": true,
+  "source_sha256": "c09cd8cd976d2c6d5550baf4f7047e16ec3dae0a127740d98bfed734e7360c46",
+  "label": "benign",
+  "pair": "rename",
+  "classifier_status": "not scored; this is an extractor study"
+}

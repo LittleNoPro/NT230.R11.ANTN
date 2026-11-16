@@ -1,0 +1,30 @@
+{
+  "id": "command_b",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 0,
+  "n_funcs": 0,
+  "nodes": [
+    [
+      "$local = $_GET['message'] ?? '';",
+      "$message = $_GET['message'] ?? '';",
+      0
+    ],
+    [
+      "echo shell_exec('printf %s ' . escapeshellarg($local));",
+      "echo shell_exec('printf %s ' . escapeshellarg($message));",
+      2
+    ]
+  ],
+  "edges": [
+    [
+      0,
+      1
+    ]
+  ],
+  "ok": true,
+  "source_sha256": "5fb1d8754b30ef54d4ed362fd5a55922ac04e46df558aadfd54f42ddddd95a9b",
+  "label": "benign",
+  "pair": "command",
+  "classifier_status": "not scored; this is an extractor study"
+}

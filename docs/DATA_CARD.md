@@ -14,6 +14,27 @@ source bias:
 
 Scale is deliberately moderate (≈25k files); the contribution is in labelling hygiene, not volume.
 
+### Version status
+
+The committed manifests, clusters, splits and 346 model runs are historical **v1** evidence, sealed in
+`results/provenance.json`. Its anchor-only LSH comparisons can miss candidate pairs, and its byte-level whitespace
+hash can merge different literals. Cluster disjointness therefore describes recorded clusters, not exhaustive
+absence of similar samples. In **v2**, every LSH-bucket candidate pair is eligible for exact verification, all
+equivalences use one union-find, and hashes retain string/comment bytes using PHP lexical tokens.
+LSH remains approximate. No v2 model metrics have been measured; outputs go to `reproductions/v2/`.
+
+`sources.lock.tsv` resolves all 24 source repositories to full commits. New manifests use paths relative to
+the source/extraction directory; Cyc1e183 paths do not repeat `extracted/`. The v1 benign subsample actually has
+**10,376** files because per-source rounding overshot the 10,375 target. V2 uses largest-remainder allocation.
+The original three-auditor label audit is pending (300 blank decisions); no measured label-error rate is claimed.
+After recovering the historical corpus, `python src/label_audit.py restore` restores the original blinded copies
+without changing the reviewers' sheets. After independent review, `python src/label_audit.py score` computes the
+agreement and label-error tables. An automated construct study does not replace that human audit.
+The separate CC0 **PHP-Construct-22** artifact has 22 original benign, analysis-only fixtures; see
+`docs/CONSTRUCT_CASES.md`. These are not part of the corpus or classifier performance estimates.
+It supplies a modest, reproducible data artifact for the optional dataset contribution: source, labels,
+split, license and limitations are explicit, but its all-benign composition cannot support detection metrics.
+
 ## 2. Composition (files ending in .php/.phtml/.php3-7/.inc)
 
 | Label | Subset | Source (pinned commit/tag) | License | Files | contain `<?` | exact-dedup | ws-dedup |
@@ -29,7 +50,8 @@ Scale is deliberately moderate (≈25k files); the contribution is in labelling 
 
 The per-source dedup funnel is generated in `results/tables/dataset_funnel.tex`.
 After exact dedup the paper subset holds **3,097 webshells** (paper: 3,104) and 12,930 benign files, which
-we subsample to the paper's **10,375** (proportionally per project, seed 2024).
+we target the paper's **10,375** (proportionally per project, seed 2024); the retained v1 artifacts contain
+10,376 because of rounding, corrected to the exact target in v2.
 
 ## 3. Collection & cleaning
 `scripts/fetch_sources.sh` clones every source at the pinned revision; `src/build_manifest.py` records for

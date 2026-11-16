@@ -67,7 +67,7 @@ the sources of confusion we analyse (orange).}
   \item \textbf{Decision}: binary, per file, before the file is executed; a false positive blocks a legitimate
         deployment, a false negative leaves a backdoor.
   \item \textbf{Out of scope}: memory-resident shells, non-PHP shells, adaptive adversarial attacks against the model,
-        legitimately deployed admin tools.
+        inferring deployment authorisation from one source file.
 \end{itemize}
 
 \subsection{Research questions}
@@ -79,7 +79,7 @@ the sources of confusion we analyse (orange).}
   \item[RQ3 (validity)] How much of the performance is explained by near-duplicate leakage between train and test
         and by the benign/webshell source confound?
   \item[RQ4 (generalisation)] How does the detector behave on benign projects and webshell collections that were
-        not part of the training sources, i.e.\ the false-positive rate a deployment would see?
+        not part of the training sources, as a proxy for source generalisation?
 \end{description}
 
 \subsection{Labels and the features the detector sees}
@@ -95,10 +95,10 @@ pinned release of a widely deployed project; labels are source-level (full guide
 \toprule
 Feature & Content & Malicious signal it can carry \\ \midrule
 Statement text & One PHP statement / branch condition, pretty-printed & API used, request input, payload strings \\
-Normalisation & local variables $\to$ \texttt{\$local}, user functions/methods $\to$ \texttt{user\_define}, numbers $\to$ \texttt{im} & removes names/passwords, keeps built-ins and strings \\
+Normalisation & local variables $\to$ \texttt{\$local}, user functions/methods $\to$ \texttt{user\_define}, numbers $\to$ \texttt{im} & removes local names/numbers; retains built-ins and truncated strings \\
 Embedding & 100-d vector of the normalised statement (W2V / FastText / GloVe / D2V) & co-occurrence of risky statements \\
 Risk level & one-hot: 2 = \emph{critical} (\texttt{system, exec, shell\_exec, passthru, popen, proc\_open, pcntl\_exec}, backticks); 1 = \emph{obfuscated} (\texttt{eval, assert, preg\_replace, create\_function, call\_user\_func*}, array/sort callbacks, \dots); 0 = normal & explicit dangerous capability \\
-Edges & intra-procedural control flow + call/return edges between functions (ICFG) & how input reaches the sink \\
+Edges & intra-procedural control flow + call/return edges between functions (ICFG) & statement order and call structure; no explicit taint relation \\
 Graph & mean of final node states (Eq.~6 of~\paperref{}) & whole-file behaviour \\
 \bottomrule
 \end{tabularx}

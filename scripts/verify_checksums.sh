@@ -1,13 +1,26 @@
 #!/usr/bin/env bash
-# Verify that every sample kept by the manifest is present and byte-identical (SHA-256).
+# Verify bytes without executing PHP; supports spaces in sample paths.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$ROOT"
-python3 - <<'PY' > /tmp/glareshell_sha256sums.txt
-import csv
-base = {"Cyc1e183__PHP-Webshell-Dataset": "samples/raw/webshell/Cyc1e183__PHP-Webshell-Dataset/extracted/"}
-for r in csv.DictReader(open("data/manifests/manifest_all.csv")):
-    if r["keep_exact"] == "1":
-        print(f"{r['sha256']}  {base.get(r['source'], 'samples/raw/' + r['label'] + '/' + r['source'] + '/')}{r['relpath']}")
-PY
-sha256sum --quiet -c /tmp/glareshell_sha256sums.txt && echo "OK: $(wc -l < /tmp/glareshell_sha256sums.txt) samples verified"
+export GLARESHELL_REPO_ROOT="$ROOT"
+python3 - <<'CHECK'
+import csv, hashlib, os
+from pathlib import Path
+root = Path(os.environ["GLARESHELL_REPO_ROOT"])
+data = Path(os.environ.get("GLARESHELL_DATA", root / "data"))
+count = 0
+for row in csv.DictReader(open(data / "manifests/manifest_all.csv")):
+    if row["keep_exact"] != "1":
+        continue
+    base = root / "samples/raw" / row["label"] / row["source"]
+    if row["source"] == "Cyc1e183__PHP-Webshell-Dataset":
+        base /= "extracted"
+    path = base / row["relpath"]
+    if not path.resolve().is_relative_to(base.resolve()):
+        raise SystemExit(f"Invalid sample path: {row['relpath']}")
+    actual = hashlib.sha256(path.read_bytes()).hexdigest()
+    if actual != row["sha256"]:
+        raise SystemExit(f"SHA-256 mismatch: {path}")
+    count += 1
+print(f"OK: {count} samples verified")
+CHECK

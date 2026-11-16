@@ -5,7 +5,7 @@ evaluation protocols (``GlareShell-R''; data card in \texttt{docs/DATA\_CARD.md}
 \texttt{docs/SCHEMA.md}, label guide in \texttt{docs/LABEL\_GUIDE.md}).
 
 \subsection{Sources and provenance}
-We cloned every repository of the paper's Table~1 at pinned revisions (\Cref{tab:funnel}).
+We rebuilt the available sources of the paper's Table~1 (references are now fixed in \texttt{sources.lock.tsv}) (\Cref{tab:funnel}).
 \texttt{ysrc/webshell-sample} has been deleted from GitHub; its files survive only inside the
 Cyc1e183 aggregate~\cite{cyc1e183}, a ``cleaned'' set of 2,917 webshells drawn from 17 collections, which
 dominates the webshell side. Its files are named by MD5 and carry no origin; matching MD5s against the
@@ -28,8 +28,7 @@ individual webshell collections mean that their files are already inside Cyc1e18
 \paragraph{Reproduced composition}
 After exact-hash deduplication the paper sources yield \textbf{3,097 webshells} (paper: 3,104) and 12,930 benign
 files. The paper reports 10,375 benign files without saying how they were chosen; we subsample proportionally per
-project (seed 2024) to exactly that size. The webshell count matches the paper within 0.2\%, which suggests the
-paper used \emph{exact-hash} deduplication.
+project (seed 2024) to 10,376 files in v1 because independent rounding exceeded the 10,375 target by one. Version~2 uses largest-remainder allocation to meet the target exactly. Similar counts do not establish identical samples or deduplication.
 
 \subsection{ICFG extraction statistics}
 \Cref{tab:extraction} shows that extraction itself is \emph{label-dependent}: webshells are older, less
@@ -87,3 +86,13 @@ Each protocol is instantiated with 5 seeds. We could not build a meaningful temp
 malware dates -- all 2,917 Cyc1e183 files share one commit (2020-11-13, a single zip), 98\% of xl7dev and 86\% of
 BlackArch files share one day; only \texttt{tennc/webshell} has a spread history (100 distinct days, 2013--2023),
 and its files are mostly already inside the aggregate. Source-disjoint protocols (\xs{} and \texttt{loo}) are our substitute.
+
+\paragraph{Historical protocol and unfinished audit}
+The committed model predictions use the original v1 splits. Review identified incomplete LSH bucket-pair comparisons,
+skipped large buckets and a post-hoc whitespace representative assignment that could break transitive components.
+Version~2 verifies every candidate pair and uses one union-find for all merges; LSH remains an approximate candidate
+search. Version~2 also preserves literal bytes in its whitespace hash. Its model experiments have not been rerun;
+therefore v1 cluster disjointness and the 77\% overlap figure must not be read as exhaustive leakage control.
+\texttt{results/provenance.json} seals the old input/prediction hashes. Fresh output goes to an isolated directory.
+The blinded label-audit protocol has 150 selected files and 300 pending reviewer decisions. No Cohen's $\kappa$
+or label-error prevalence has yet been measured; the qualitative helper-file examples are not a representative audit.

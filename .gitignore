@@ -21,3 +21,12 @@ report/*.blg
 
 # Paper PDF (copyrighted): keep locally, cite by DOI
 GlareShell.pdf
+
+# Isolated reproduction outputs and local review environments
+reproductions/
+.venv/
+
+# Generated local verification summaries
+results/artifact_check.json
+results/report_layout.json
+results/validation.json

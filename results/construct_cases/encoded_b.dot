@@ -1,0 +1,4 @@
+digraph ICFG {
+node [shape=box,fontname="monospace"];
+n0 [label="0: echo base64_decode('aGVsbG8='); [risk=0]"];
+}

@@ -1,0 +1,20 @@
+{
+  "id": "dynamic_a",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 0,
+  "n_funcs": 0,
+  "nodes": [
+    [
+      "echo strlen($_GET['message'] ?? '');",
+      "echo strlen($_GET['message'] ?? '');",
+      0
+    ]
+  ],
+  "edges": [],
+  "ok": true,
+  "source_sha256": "cf6bca77b6e3a11ff3aeba2694eaa8b3fb4383cd562da2c32a635b1d0f716e02",
+  "label": "benign",
+  "pair": "dynamic",
+  "classifier_status": "not scored; this is an extractor study"
+}

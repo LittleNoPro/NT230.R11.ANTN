@@ -1,0 +1,34 @@
+{
+  "id": "namespace_b",
+  "parse_error": false,
+  "truncated": false,
+  "n_pruned": 0,
+  "n_funcs": 1,
+  "nodes": [
+    [
+      "echo user_define($_GET['message'] ?? '');",
+      "echo greet($_GET['message'] ?? '');",
+      0
+    ],
+    [
+      "return htmlspecialchars($local);",
+      "return htmlspecialchars($x);",
+      0
+    ]
+  ],
+  "edges": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ]
+  ],
+  "ok": true,
+  "source_sha256": "e89690e02086b317f7c103210ef176efe8f06940de41914c35424cd01353f60b",
+  "label": "benign",
+  "pair": "namespace",
+  "classifier_status": "not scored; this is an extractor study"
+}
