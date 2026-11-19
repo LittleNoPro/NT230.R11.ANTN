@@ -1,0 +1,34 @@
+\begin{tabular}{@{}lllrr@{}}
+\toprule
+Protocol & Error & Tag (non-exclusive) & Count (5 seeds) & Share \\ \midrule
+paper\_random & FN & no request input in ICFG & 42 & 88\% \\
+paper\_random & FN & no risky built-in call & 34 & 71\% \\
+paper\_random & FN & empty ICFG & 33 & 69\% \\
+paper\_random & FN & parse error (recovered) & 31 & 65\% \\
+paper\_random & FN & no risky built-in call (dynamic call \$f()) & 5 & 10\% \\
+paper\_random & FP & no tag & 5 & 42\% \\
+paper\_random & FP & tiny ICFG (<5 statements) & 3 & 25\% \\
+paper\_random & FP & benign reads request input & 2 & 17\% \\
+paper\_random & FP & benign uses callback/eval-like call & 2 & 17\% \\
+clean\_group & FN & no risky built-in call & 42 & 50\% \\
+clean\_group & FN & no request input in ICFG & 36 & 43\% \\
+clean\_group & FN & tiny ICFG (<5 statements) & 23 & 27\% \\
+clean\_group & FN & parse error (recovered) & 19 & 23\% \\
+clean\_group & FN & empty ICFG & 17 & 20\% \\
+clean\_group & FP & tiny ICFG (<5 statements) & 7 & 41\% \\
+clean\_group & FP & benign reads request input & 6 & 35\% \\
+clean\_group & FP & no tag & 3 & 18\% \\
+clean\_group & FP & benign uses callback/eval-like call & 3 & 18\% \\
+clean\_group & FP & ICFG truncated at 2000 nodes & 1 & 6\% \\
+cross\_source & FN & no request input in ICFG & 36 & 97\% \\
+cross\_source & FN & no risky built-in call & 27 & 73\% \\
+cross\_source & FN & parse error (recovered) & 20 & 54\% \\
+cross\_source & FN & empty ICFG & 15 & 41\% \\
+cross\_source & FN & no risky built-in call (dynamic call \$f()) & 4 & 11\% \\
+cross\_source & FP & no tag & 306 & 48\% \\
+cross\_source & FP & tiny ICFG (<5 statements) & 130 & 20\% \\
+cross\_source & FP & benign reads request input & 127 & 20\% \\
+cross\_source & FP & benign uses callback/eval-like call & 93 & 15\% \\
+cross\_source & FP & benign uses critical call & 18 & 3\% \\
+\bottomrule
+\end{tabular}

@@ -70,13 +70,15 @@ def near_dup_clusters(keys, sets, ws_hashes=None, signatures=None):
             for i, j in combinations(bucket, 2):
                 if find(i) == find(j):
                     continue
+                s1, s2 = sets[i], sets[j]
+                # This bound is exact: avoid retaining impossible pairs in the
+                # cross-band cache, especially for buckets of very different sizes.
+                if min(len(s1), len(s2)) / max(len(s1), len(s2)) < JACCARD:
+                    continue
                 pair = (min(i, j), max(i, j))
                 if pair in seen:
                     continue
                 seen.add(pair)
-                s1, s2 = sets[i], sets[j]
-                if min(len(s1), len(s2)) / max(len(s1), len(s2)) < JACCARD:
-                    continue
                 if len(s1 & s2) / len(s1 | s2) >= JACCARD:
                     n_merges += union(i, j)
     return np.array([find(i) for i in range(len(keys))]), n_merges

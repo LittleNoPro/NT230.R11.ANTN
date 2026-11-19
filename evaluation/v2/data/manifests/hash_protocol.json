@@ -1,0 +1,4 @@
+{
+  "version": "php-token-whitespace-v2",
+  "ws_hash": "SHA-256 of framed PHP tokens excluding T_WHITESPACE; strings and comments retained"
+}

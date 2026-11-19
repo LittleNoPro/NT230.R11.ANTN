@@ -1,107 +1,131 @@
-# Data card — GlareShell-R (PHP webshell / benign script corpus with near-duplicate control)
+# Data card — GlareShell-R
 
-## 1. Motivation
-GlareShell (Feng et al., *Computer Networks* 245, 2024) reports F1 = 0.9887 on a self-collected corpus
-(3,104 webshells / 10,375 benign files) split **randomly** 8:1:1 after **exact-hash** deduplication.
-The corpus itself is not released. GlareShell-R rebuilds the corpus from the sources listed in the
-paper's Table 1, documents its provenance, and adds what is needed to measure — and control — leakage and
-source bias:
+GlareShell-R rebuilds the static PHP benchmark described by Feng et al., Computer Networks 245 (2024),
+DOI 10.1016/j.comnet.2024.110406. The paper's original corpus was unavailable. We measure duplicate overlap,
+source confounds, syntax failures and confusion with legitimate PHP capabilities.
 
-* a second, stricter deduplication level (whitespace-insensitive hash);
-* near-duplicate clusters over normalised ICFG statements (MinHash-LSH, verified Jaccard ≥ 0.8);
-* a **cluster-disjoint** split (`clean_group`) and a **cross-source** test set of projects/collections that
-  are absent from the paper's sources (`cross_source`).
+## Version status
 
-Scale is deliberately moderate (≈25k files); the contribution is in labelling hygiene, not volume.
+The v2 evaluation is complete: 346 runs and 40 splits passed validation. Checked public evidence is in evaluation/v2/; private graphs, caches and models remain in reproductions/v2/.
+Root `data/` and `results/` retain v1 inputs/predictions, sealed in `results/provenance.json`. V1's byte whitespace
+hash merged different literals and its LSH implementation missed candidate comparisons. V1 predictions are not
+results of the corrected algorithm.
 
-### Version status
+All 24 upstream repositories are fixed at full commits in `sources.lock.tsv`. Complete verified sources are
+available in this workspace and on the authorized GPU machine. Verification checks HEAD, tracked modifications,
+the aggregate LFS object's committed size/SHA-256, and every extracted member. Unresolved LFS pointers are rejected.
 
-The committed manifests, clusters, splits and 346 model runs are historical **v1** evidence, sealed in
-`results/provenance.json`. Its anchor-only LSH comparisons can miss candidate pairs, and its byte-level whitespace
-hash can merge different literals. Cluster disjointness therefore describes recorded clusters, not exhaustive
-absence of similar samples. In **v2**, every LSH-bucket candidate pair is eligible for exact verification, all
-equivalences use one union-find, and hashes retain string/comment bytes using PHP lexical tokens.
-LSH remains approximate. No v2 model metrics have been measured; outputs go to `reproductions/v2/`.
+## Composition
 
-`sources.lock.tsv` resolves all 24 source repositories to full commits. New manifests use paths relative to
-the source/extraction directory; Cyc1e183 paths do not repeat `extracted/`. The v1 benign subsample actually has
-**10,376** files because per-source rounding overshot the 10,375 target. V2 uses largest-remainder allocation.
-The original three-auditor label audit is pending (300 blank decisions); no measured label-error rate is claimed.
-After recovering the historical corpus, `python src/label_audit.py restore` restores the original blinded copies
-without changing the reviewers' sheets. After independent review, `python src/label_audit.py score` computes the
-agreement and label-error tables. An automated construct study does not replace that human audit.
-The separate CC0 **PHP-Construct-22** artifact has 22 original benign, analysis-only fixtures; see
-`docs/CONSTRUCT_CASES.md`. These are not part of the corpus or classifier performance estimates.
-It supplies a modest, reproducible data artifact for the optional dataset contribution: source, labels,
-split, license and limitations are explicit, but its all-benign composition cannot support detection metrics.
+Counts come from the v2 manifest. Representatives prefer paper sources, then fixed priority. Lexical deduplication
+ignores only PHP `T_WHITESPACE`, preserving strings, comments and inline HTML.
 
-## 2. Composition (files ending in .php/.phtml/.php3-7/.inc)
+| Label / subset | Repository @ commit | Candidates | PHP tag | Exact | Lexical | License |
+|---|---|---:|---:|---:|---:|---|
+| benign / heldout | joomla/joomla-cms @a5e3be9a4e | 3,105 | 3,105 | 3,104 | 3,104 | GPL-2.0-or-later |
+| benign / heldout | laravel/framework @7e0701bf59 | 2,193 | 2,100 | 2,100 | 2,100 | MIT |
+| benign / heldout | matomo-org/matomo @7b5e5f9bb6 | 3,085 | 3,071 | 2,946 | 2,946 | GPL-3.0-or-later |
+| benign / heldout | phpmyadmin/phpmyadmin @11e127f3fa | 951 | 951 | 951 | 951 | GPL-2.0-or-later |
+| benign / paper | PHPMailer/PHPMailer @039de174cd | 124 | 124 | 123 | 123 | LGPL-2.1 |
+| benign / paper | WordPress/WordPress @d86d26bd27 | 1,452 | 1,452 | 1,448 | 1,448 | GPL-2.0-or-later |
+| benign / paper | doorgets/CMS @f6b53642b9 | 1,573 | 1,568 | 1,449 | 1,445 | unspecified |
+| benign / paper | drupal/drupal @d4c491f770 | 9,868 | 9,866 | 9,860 | 9,860 | GPL-2.0-or-later |
+| benign / paper | laravel/laravel @d3287461e1 | 51 | 50 | 50 | 50 | MIT |
+| webshell / heldout | BlackArch/webshells @e8e1a379c3 | 201 | 186 | 15 | 14 | unspecified |
+| webshell / heldout | xl7dev/WebShell @f7cd87feb5 | 282 | 278 | 31 | 28 | GPL-2.0 |
+| webshell / paper | Cyc1e183/PHP-Webshell-Dataset @59ff14ffb0 | 2,917 | 2,908 | 2,908 | 2,829 | unspecified |
+| webshell / paper | JohnTroony/php-webshells @226a15d068 | 119 | 110 | 27 | 27 | unspecified |
+| webshell / paper | bartblaze/PHP-backdoors @8ca75ed86a | 184 | 181 | 33 | 33 | CC0-1.0 |
+| webshell / paper | tennc/webshell @6b17eae4a0 | 381 | 378 | 129 | 127 | MIT |
 
-| Label | Subset | Source (pinned commit/tag) | License | Files | contain `<?` | exact-dedup | ws-dedup |
-|---|---|---|---|---|---|---|---|
-| webshell | paper | Cyc1e183/PHP-Webshell-Dataset @59ff14f (aggregate of 17 collections incl. the deleted ysrc/webshell-sample) | none stated | 2917 | 2908 | 2917 | 1652 |
-| webshell | paper | bartblaze/PHP-backdoors @8ca75ed | CC0-1.0 | 184 | 181 | — | — |
-| webshell | paper | tennc/webshell @6b17eae (PHP part) | MIT | 381 | 378 | — | — |
-| webshell | paper | JohnTroony/php-webshells @226a15d | none stated | 119 | 110 | — | — |
-| webshell | heldout | BlackArch/webshells @e8e1a37 (PHP part) | none stated | 201 | 186 | — | — |
-| webshell | heldout | xl7dev/WebShell @f7cd87f (PHP part) | GPL-2.0 | 282 | 278 | — | — |
-| benign | paper | WordPress 6.4.3, drupal 10.2.5, laravel/laravel v10.3.3, PHPMailer v6.9.1, doorgets/CMS @f6b5364 | GPL-2.0+/GPL-2.0+/MIT/LGPL-2.1/none stated | 13068 | — | 12930 | 12924 |
-| benign | heldout | laravel/framework v10.48.4, phpMyAdmin 5.2.1, Joomla 5.0.3, Matomo 5.0.3 | MIT/GPL-2.0/GPL-2.0+/GPL-3.0 | 9334 | — | 9101 | 9100 |
+There are **26,486 candidate paths** and **25,174 exact representatives**: paper 3,097 webshells / 12,930 benign;
+held-out 46 webshells / 9,101 benign. Paths without a PHP tag and conflicting-label groups are excluded; 27 candidate
+rows carry a lexical-hash label conflict. Paper benign subsampling uses proportional largest remainders and seed
+2024 to retain exactly **10,375** files, correcting v1's total of 10,376. Similar counts do not imply the same corpus.
 
-The per-source dedup funnel is generated in `results/tables/dataset_funnel.tex`.
-After exact dedup the paper subset holds **3,097 webshells** (paper: 3,104) and 12,930 benign files, which
-we target the paper's **10,375** (proportionally per project, seed 2024); the retained v1 artifacts contain
-10,376 because of rounding, corrected to the exact target in v2.
+## Labels and provenance
 
-## 3. Collection & cleaning
-`scripts/fetch_sources.sh` clones every source at the pinned revision; `src/build_manifest.py` records for
-every file: SHA-256, MD5, whitespace-normalised hash, size, source repo, relative path, first-seen git date
-(only for non-shallow webshell clones), whether it contains a PHP open tag, and two dedup flags.
-* `keep_exact` — first copy per SHA-256 (paper subset preferred, then source priority);
-* `keep_ws` — first copy per whitespace-normalised hash;
-* files whose copies carry **both labels** are dropped (30 files, e.g. benign libraries bundled in webshell kits);
-* files without `<?` are dropped (not PHP code: templates, renamed text).
+Collections supply `webshell`; applications supply `benign`. These proxy labels do not establish intent,
+authorization or current exploitability. Kits include helpers; applications include suspicious test fixtures and
+legitimate administration code. No file is silently relabelled after its prediction. See [LABEL_GUIDE.md](LABEL_GUIDE.md).
 
-Provenance inside the Cyc1e183 aggregate is recovered by MD5 matching against the individual
-collections: 2,271 of its 2,917 files match none of the collections we could clone (origin = `unknown`).
+The aggregate has 2,917 candidates. MD5 matching attributes 646; 2,271 have unknown origin. Fixed matching priority
+is not proof of earliest publication, authorship or family. Git dates are upload dates, not infection dates; shallow
+sources lack history. No temporal generalisation is claimed.
 
-## 4. Labels
-See `docs/LABEL_GUIDE.md`. Labels are **source-level** (collection ⇒ webshell, release tarball of a vetted
-project ⇒ benign); no file was relabelled by hand. Known consequences: webshell collections contain
-helper files and non-malicious fragments (e.g. a CSS-only page, `phpinfo()` probes), and benign projects
-contain test fixtures that *look* malicious. These are counted in the error analysis, not removed, to avoid
-cherry-picking.
+The historical audit has **150 restored blinded copies and 300 unfilled human decisions**. Sheets and key are
+unchanged. No agreement or label-error rate is claimed. It remains a v1 audit, not a representative v2 audit.
+See [AUDIT_PROTOCOL.md](AUDIT_PROTOCOL.md).
 
-## 5. Near-duplicate structure (main finding)
-* 1,265 of the 2,917 Cyc1e183 files (43%) are byte-identical once whitespace is ignored.
-* The 3,097 paper-subset webshells form only **1,368 near-duplicate clusters**.
-* Under the paper's random 8:1:1 protocol, **73–81% of test webshells** (5 seeds) have a near-duplicate in
-  the training set (benign: 8–11%).
-* `clean_group` keeps whole clusters on one side: 1,747 webshells / 10,372 benign, 8:1:1 by cluster.
-* `cross_source` test = 9,091 held-out benign files + 18 webshells that are not near-duplicates of anything
-  in the paper subset. 18 is small — recall on it is reported with Wilson intervals, the set is mainly a
-  false-positive stress test.
+## Representation and duplicate control
 
-## 6. Splits & schema
-`data/splits/{paper_random,clean_group,cross_source}_s{0..4}.json` → `{"train": [sha256...], "val": [...], "test": [...]}`.
-Schema of every CSV: `docs/SCHEMA.md`.
+PHP 8.2.35, PHP-Parser 4.19.4 and pinned LChecker produce graphs capped at 2,000 nodes. Paper webshells include
+139 recovered parse errors, 53 empty graphs and 477 truncated graphs. Four extraction attempts fail, including
+missing records after isolated retries. Failures remain as empty graphs rather than being removed.
 
-## 7. Known biases & limitations
-* **Source confound**: benign = 5 large frameworks/CMS (class-based, namespaced, PSR style); webshells =
-  standalone procedural scripts. A model can separate "framework file vs. standalone script" without learning
-  maliciousness — see the graph-statistics baseline in the report.
-* **Era confound**: many webshells are PHP 4/5 era (short tags, `mysql_*`), benign releases are 2023–2024.
-* No temporal split: the Cyc1e183 aggregate has no timestamps and the original collections have
-  shallow/merged histories; we use source-disjointness instead.
-* Benign projects are subsampled, so the class prior (23% webshell) is far from deployment reality
-  (webshells are rare): precision in deployment would be lower than any number reported here.
+V2 clusters normalized-statement sets using 128-permutation, 32-band MinHash-LSH, exact Jaccard >= 0.8 verification
+of every eligible bucket pair, and one union-find for lexical hashes and identical nonempty sets. Empty graphs
+merge only by lexical hash. There is no large-bucket skip. LSH still misses some pairs; transitive components need
+not have every pair above 0.8. They are representation clusters, not verified malware families.
+The 3,097 paper webshells form **1,395 clusters** (445 singletons, largest 55); no cluster mixes labels in this run.
 
-## 8. Safety & distribution
-Webshells are **never executed**: the pipeline only parses them (PHP-Parser) and reads bytes. Raw files live in
-`samples/` (git-ignored). The repository ships only hashes, paths and scripts to re-fetch from the original public
-sources. For grading, `scripts/pack_samples.sh` builds a password-protected zip (`infected`) with a SHA-256
-checksum, to be handed over privately, never uploaded publicly.
+## Splits and selection
 
-## 9. Maintenance
-Pinned revisions make the corpus re-buildable as long as the upstream repositories exist (ysrc/webshell-sample
-already disappeared; its files survive only inside the Cyc1e183 aggregate).
+Main comparisons use five seeds; sweeps use seeds 0–2.
+
+- `paper_random`: exact dedup; 3,097 webshells / 10,375 benign; stratified 8:1:1. Recorded webshell test-to-train
+  cluster overlap is 71.9–83.2% over seeds, rather than an exhaustive leakage estimate.
+- `clean_group`: lexical dedup then whole-cluster partitions towards 8:1:1; 3,016 webshells / 10,372 benign.
+  Main-corpus clusters are disjoint between train, validation and test.
+- `cross_source`: clean training/validation; **20 novel webshells and 9,092 benign files** from four unseen projects.
+  Test components are absent from all paper sources. Twenty positives give a coarse recall estimate.
+- `loo_tennc`, `loo_bartblaze`, `loo_xl7dev`: attribution holdouts with 365, 178 and 139 test webshells. Components
+  touching test positives are removed from training/validation; clean benign partitions are reused. This is not a
+  verified family split.
+- `base`, `aug`: matched auxiliary experiments. Test IDs match within each seed; clean membership varies between seeds.
+
+Embeddings, TF-IDF and feature selection are fitted only on training files. Checkpoint selection uses validation
+F1; classification uses threshold 0.5. Alarm-budget thresholds use the test ROC and are labeled **optimistic oracle
+bounds**, not calibrated deployment performance. Seed intervals do not cover arbitrary future projects.
+
+## Auxiliary benign applications
+
+Training: YOURLS, FluxBB, DokuWiki, Cacti, Adminer, capped at 1,000 retained files per project. Test: OPNsense core,
+osTicket, MyBB, Tiny File Manager. Main-corpus and within-track exact/token duplicates are removed. Added files
+are **not** main-corpus near-duplicate clustered, a narrower leakage control than `clean_group`. Training-project
+files are split between train/validation; test projects remain unseen. Twelve original benign standalone probes
+provide a stress test, not a representative server sample.
+
+License files at locked revisions: YOURLS — MIT; FluxBB, DokuWiki, Cacti, osTicket — GPL v2 texts; MyBB — LGPL v3;
+OPNsense core — BSD two-clause text; Tiny File Manager — GPL v3; Adminer — Apache 2.0 or GPL 2.0. Bundled code can
+carry additional notices; consult the pinned files. No new license is imposed on upstream source.
+
+## Original optional artifact
+
+[PHP-Construct-22](CONSTRUCT_CASES.md) supplies 22 original benign snippets in 11 pairs, with CC0 license, hashes,
+label rationales and `analysis_only` split in `tests/construct_cases/manifest.json`. They are excluded from all
+classifier partitions. Exact emitted graphs and DOT files are in `results/construct_cases/`. An all-benign
+extractor artifact cannot estimate detection accuracy or replace human label review.
+
+## Limits
+
+- Framework benign code and procedural PHP 4/5-era webshells differ in syntax, size, age and parseability. These can
+  be shortcuts. The structural/risk-statistics baseline includes API/input indicators, not pure topology alone.
+- The unit is a source file, not a request, infection or industrial server. There is no runtime taint proof,
+  dynamic include recovery, general deobfuscation or industrial deployment evaluation.
+- Selection includes `.php`, `.php3`–`.php7`, `.phtml`, `.inc`; other framework suffixes, disguised extensions,
+  memory-resident payloads and non-PHP shells are outside the corpus.
+- Text baselines read at most 100,000 bytes and use hashed 1–2-grams. Graph text is truncated and normalized;
+  pruning, undirected model edges and flattened exceptions lose information.
+- Corpus priors differ from rare-webshell deployment. Public variants are correlated; projects are few. Precision
+  cannot transfer unchanged to a live server. Human label verification remains pending.
+
+## Distribution
+
+Samples are parsed/read as bytes, never executed, included as PHP, served or deployed. The evaluation container
+has no external network and read-only samples. Raw code, graph fragments, caches and weights are Git-ignored.
+Public evidence contains hashes, paths, labels, numeric statistics and predictions.
+
+For a private grading archive, `scripts/pack_samples.sh` accepts `GLARESHELL_DATA` and `GLARESHELL_SAMPLE_ARCHIVE`,
+includes selected main/auxiliary files, uses password `infected` and writes a SHA-256 checksum. Keep it private.
+Fetching depends on upstream availability; verified local copies preserve the current locked corpus.

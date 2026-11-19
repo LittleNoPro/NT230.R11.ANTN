@@ -1,0 +1,14 @@
+WEBSHELL p=0.511 n_stmt=8 /work/tests/probe_benign/cleanup_cron.php
+WEBSHELL p=1.000 n_stmt=17 /work/tests/probe_benign/contact_form.php
+WEBSHELL p=0.999 n_stmt=9 /work/tests/probe_benign/download.php
+WEBSHELL p=0.998 n_stmt=11 /work/tests/probe_benign/export_csv.php
+WEBSHELL p=1.000 n_stmt=9 /work/tests/probe_benign/guestbook.php
+benign   p=0.130 n_stmt=2 /work/tests/probe_benign/hello.php
+WEBSHELL p=1.000 n_stmt=9 /work/tests/probe_benign/image_upload.php
+benign   p=0.407 n_stmt=16 /work/tests/probe_benign/json_api.php
+WEBSHELL p=0.610 n_stmt=11 /work/tests/probe_benign/login.php
+WEBSHELL p=1.000 n_stmt=5 /work/tests/probe_benign/ping_tool.php
+           [critical] $output = shell_exec('ping -c 3 ' . escapeshellarg($host));
+WEBSHELL p=1.000 n_stmt=5 /work/tests/probe_benign/router.php
+WEBSHELL p=0.988 n_stmt=5 /work/tests/probe_benign/template_render.php
+           [obfuscated] ob_start();

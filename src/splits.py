@@ -99,7 +99,7 @@ def main():
               {k: len(v) for k, v in sp2.items()})
 
 
-# leave-one-collection-out: webshells whose earliest public source is collection X form the test set
+# Leave-one-collection-out: attribution uses MD5 matching and a fixed source priority, not earliest publication.
 ORIGINS = {"tennc": "tennc__webshell", "bartblaze": "bartblaze__PHP-backdoors", "xl7dev": "xl7dev__WebShell"}
 
 

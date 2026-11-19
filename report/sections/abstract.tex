@@ -1,21 +1,17 @@
 \begin{abstract}
-GlareShell (Feng et al., Computer Networks 2024) detects PHP webshells by turning each script into an
-interprocedural control-flow graph of statements, embedding the statements with word-embedding models, adding a
-risk level per statement and classifying the graph with a GNN; it reports F1 = 0.9887. Neither code nor data were
-released. We re-implement the pipeline on the same static-analysis tool (with four fixes needed for modern PHP),
-rebuild the corpus from the paper's sources with provenance, hashes and near-duplicate clusters, and run the main configurations with five seeds (sweeps: three). On a paper-style protocol we reproduce the headline result (F1 0.98 for GCN, GIN and GAT;
-FastText as best embedding) but not the finer claims: no significant advantage of GAT over GCN or GIN is established, the dimension curve is
-flat, and the ablation of normalisation and risk weights is within noise. Beyond the paper we find that
-77\% of test webshells in a random split have a near-duplicate in training, that a TF-IDF + logistic-regression
-baseline beats every GNN (F1 0.997), that twelve graph statistics without code semantics already reach F1 0.92, that
-the false-positive rate quadruples on unseen benign projects (1.7\%) -- at a 0.1\% alarm budget GAT then finds only
-6\% of unseen webshells versus 64\% for the text baseline -- and that the final model flags 10 of 12
-hand-written legitimate standalone scripts as webshells. Adding five small benign applications to training cuts
-the GAT false-positive rate on all benign test files from 2.5\% to 0.9\% without a significant loss of recall, but
-8 of the 12 scripts stay flagged. Recall on the 18 novel webshells falls from 0.644 to 0.544 (inconclusive). All classifier numbers use historical v1 splits; corrected v2 clustering has not been retrained. A controlled 22-file benign construct artifact exposes information lost by the graph. High scores on this benchmark mostly measure the difference
-between large framework code and webshell collections, not malicious behaviour.
+Random file splits can place near-duplicate PHP webshells in both the training and test sets, making it
+difficult to assess performance on unseen sources. We reproduce GlareShell, a static detector that classifies
+PHP files using interprocedural control-flow graphs, and evaluate it on a reconstructed benchmark.
+Across five seeds, the graph attention network achieves a mean F1 score of
+\result{gat_paper_f1} under random splitting and \result{gat_clean_f1} when each near-duplicate group stays
+in one partition. Logistic regression on TF-IDF features achieves \result{lr_clean_f1} on the grouped
+splits. In the test on held-out sources, with \result{cross_source_test_benign} benign files and
+\result{cross_source_test_webshell} files labelled as webshells by source, the graph model yields a false-positive rate of
+\result{gat_cross_fpr_percent} and a recall of \result{gat_cross_recall}, compared with
+\result{lr_cross_fpr_percent} and \result{lr_cross_recall} for the baseline. These findings support evaluating
+webshell detectors on unseen projects and collections before drawing conclusions about deployment.
 \end{abstract}
 
 \begin{IEEEkeywords}
-webshell detection, graph neural networks, PHP, reproducibility, data leakage, dataset quality
+PHP webshells, graph neural networks, static analysis, reproducibility, duplicate control, source shift
 \end{IEEEkeywords}

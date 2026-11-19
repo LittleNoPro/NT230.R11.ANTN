@@ -1,5 +1,9 @@
 # Schemas
 
+Paths below are relative to an evidence root. Historical v1 uses the repository root; the corrected public v2
+snapshot uses `evaluation/v2/`. Full private run files live in `reproductions/v2/`. Never join a v1 split to v2
+predictions or infer protocol version from a filename alone.
+
 ## data/manifests/manifest_all.csv (one row per candidate file)
 | column | type | meaning |
 |---|---|---|
@@ -10,7 +14,7 @@
 | subset | `paper`/`heldout` | paper Table 1 source vs. extension source |
 | source | str | `owner__repo` |
 | origin | str | for Cyc1e183 files: the individual collection matched by MD5, else `unknown`; otherwise = source |
-| relpath | str | path inside the source checkout |
+| relpath | str | path relative to the source/extraction directory; Cyc1e183 does not include another `extracted/` prefix |
 | size | int | bytes |
 | is_php | 0/1 | contains `<?` |
 | first_seen | date | first commit adding the file (only for full-history webshell clones) |
@@ -21,12 +25,11 @@
 | prio | int | source priority used to choose representatives |
 
 ## data/manifests/clusters.csv
-`sha256, label, subset, source, cluster, cluster_mixed` — near-duplicate cluster id (Jaccard ≥ 0.8 between the
-sets of normalised ICFG statements; whitespace duplicates always share a cluster); `cluster_mixed` = cluster
+`sha256, label, subset, source, cluster, cluster_mixed` — connected-component ID from verified Jaccard ≥ 0.8 pairs of normalised-statement sets plus lexical-hash equivalence; transitivity does not require every pair in a component to reach 0.8; `cluster_mixed` = cluster
 contains both labels.
 
 ## data/splits/<protocol>_s<seed>.json
-`{"train": [sha256], "val": [sha256], "test": [sha256]}` for protocol ∈ {paper_random, clean_group, cross_source}, seed ∈ 0..4.
+`{"train": [sha256], "val": [sha256], "test": [sha256]}` for protocol ∈ {paper_random, clean_group, cross_source, loo_tennc, loo_bartblaze, loo_xl7dev, base, aug}, seed ∈ 0..4.
 
 `data/splits/protocol.json` identifies legacy v1 or corrected v2 clustering. `results/provenance.json` seals
 historical input and prediction hashes. The v2 run directory is separate: no new split may be paired with old
@@ -47,4 +50,27 @@ Per-file extraction statistics and the 12 graph statistics used by the `struct_x
 
 ## results/runs/<run>.json
 `cfg` (all hyper-parameters, seed, split), `test` (tp, tn, fp, fn, precision, recall, tnr, fpr, acc, f1),
-`val_f1`, `history` (epoch, loss, val F1), timings, `pred` (sha, y, p) for error analysis.
+GNN-only fields: `val_f1`, `history` (epoch, loss, validation F1), timings, `n` (partition counts),
+and `runtime` (device, PyTorch/CUDA version, GPU). All runs contain `pred` with ordered `sha`, binary `y`
+and full-precision `p`. Threshold 0.5 is applied before serialisation and independently recomputed by the v2
+validator. Model probabilities are not human label judgments.
+
+## environment.json and results/provenance.json (v2)
+
+`environment.json` records the actual Python/PHP/PyTorch/CUDA/GPU, PHP extensions, installed package versions,
+Docker image ID and SHA-256 of evaluated code/configuration/fixture files. It does not dump ambient credentials
+or environment variables. `results/evaluation_check.json` records the completed inventory, split checks and
+scope limitations. `results/provenance.json` maps evidence-root-relative paths to SHA-256 for the manifests,
+splits, predictions, analysis tables/figures, numeric graph statistics and runtime record.
+
+`python src/check_evaluation.py --run-root evaluation/v2 --verify-seal` verifies that published evidence
+has not changed. Full recomputation of the validation additionally needs the local demonstration model files;
+report generation and hash verification do not require those model files or a GPU.
+
+## data/manifests/manifest_hard.csv
+
+The auxiliary benign-application track adds `subset` ∈ {hard_train, hard_test, probe}, `revision`,
+`source`, `relpath`, exact SHA-256 and the same v2 lexical hash. Its paired base/aug tests match IDs within each
+seed. Added files are exact/token deduplicated, but are not covered by main-corpus near-duplicate clustering;
+that narrower leakage control is an explicit limitation. `data/processed/graph_stats_hard.csv` gives numeric
+extraction statistics for emitted auxiliary records; missing extractor records use empty graph fallbacks.

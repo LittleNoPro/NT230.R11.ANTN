@@ -29,5 +29,20 @@ The script also generates `results/tables/construct_cases.tex` for the extended 
 | Encoding | Plain constant output is pruned; decoded constant output is retained with risk 0 | Encoded data is not decoded into a program |
 
 The annotated data-dependency graph and full table are in `report/sections/constructs.tex`.
-No classifier probabilities are provided because this checkout has no trained checkpoint. An unchanged graph is
+This study deliberately reports extractor observations without classifier probabilities. An unchanged graph is
 evidence of representation loss only; it does not prove two PHP programs have the same semantics.
+
+## Complementary corpus error inspection
+
+The extended report also inspects three purposively selected seed-0 GAT errors from the main corpus.
+These are separate from PHP-Construct-22 and do not add independent human labels. Source labels remain unchanged.
+`report/generated/corpus_case_review.json` records source hashes, measured scores, numeric graph observations,
+the extractor hash and the inspection runtime; it contains no raw corpus code.
+
+| SHA-256 prefix | Static observation | Interpretation limit |
+|---|---|---|
+| `068cde77e351` | Large legacy shell/administration text; 24 parser diagnostics, no AST and no graph nodes | Raw API-looking text is lost at parsing; successful execution is not established |
+| `c9b3fa1dada1` | A 28-byte Laravel malformed-error-view fixture becomes one unresolved risk-0 call node and is flagged | A high score can occur without a risk-list match; no causal feature attribution is claimed |
+| `4fd9cb8f4b32` | MySQL helper wrapper; 45 nodes, 62 edges, no listed risky API or direct request-read token; scored benign under a collection webshell label | Supporting code and intended use cannot be adjudicated from collection membership or a wrapper alone |
+
+Only source reading and parsing were used. The original 300 independent audit decisions remain unfilled.

@@ -1,0 +1,17 @@
+\begin{tabular}{@{}lrrl@{}}
+\toprule
+Script & GAT & TF-IDF+LR & Purpose \\ \midrule
+cleanup\_cron.php & \textbf{0.511} & \textbf{0.537} & remove old cache files \\
+contact\_form.php & \textbf{1.000} & \textbf{0.799} & validated contact form \\
+download.php & \textbf{0.999} & 0.439 & whitelisted download \\
+export\_csv.php & \textbf{0.998} & \textbf{0.631} & PDO query to CSV \\
+guestbook.php & \textbf{1.000} & \textbf{0.944} & append-only guestbook \\
+hello.php & 0.130 & \textbf{0.929} & escaped greeting \\
+image\_upload.php & \textbf{1.000} & 0.325 & MIME/size-checked upload \\
+json\_api.php & 0.407 & 0.498 & JSON to-do API \\
+login.php & \textbf{0.610} & \textbf{0.695} & PDO and password verification \\
+ping\_tool.php & \textbf{1.000} & \textbf{0.722} & validated IP and escaped argument \\
+router.php & \textbf{1.000} & 0.217 & static route table \\
+template\_render.php & \textbf{0.988} & 0.264 & template rendering \\
+\bottomrule
+\end{tabular}

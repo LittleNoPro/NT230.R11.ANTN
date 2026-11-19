@@ -96,7 +96,7 @@ def main(splits):
             for name, p in preds.items():
                 m = metrics(yte, p >= 0.5)
                 dump_json(dict(cfg=dict(name=f"bl_{split}_{name}_s{seed}", model=name, split=split, seed=seed),
-                               test=m, pred=dict(sha=sp["test"], y=yte.tolist(), p=[round(float(x), 5) for x in p])),
+                               test=m, pred=dict(sha=sp["test"], y=yte.tolist(), p=[float(x) for x in p])),
                           RUNS / f"bl_{split}_{name}_s{seed}.json")
                 print(f"{split:13s} s{seed} {name:16s} F1={m['f1']:.4f} P={m['precision']:.4f} R={m['recall']:.4f} FPR={m['fpr']:.4f}",
                       flush=True)

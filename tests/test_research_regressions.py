@@ -1,5 +1,7 @@
 """Regression checks for defects that changed research inputs or conclusions."""
 import json
+import hashlib
+import io
 import sys
 import tempfile
 import subprocess
@@ -15,6 +17,7 @@ sys.path.insert(0, str(ROOT / "src"))
 import analyze
 import build_manifest
 import fetch_sources
+from check_evaluation import check_prediction
 from clustering import N_PERM, near_dup_clusters
 
 
@@ -71,6 +74,49 @@ class ManifestRegression(unittest.TestCase):
 
 
 class FetchRegression(unittest.TestCase):
+    def test_lfs_object_is_downloaded_and_checked_against_its_committed_digest(self):
+        data = b"test archive object" * 30
+        pointer = ("version https://git-lfs.github.com/spec/v1\n"
+                   f"oid sha256:{hashlib.sha256(data).hexdigest()}\nsize {len(data)}")
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            archive = directory / "PHP-Webshell.zip"
+            archive.write_text(pointer)
+            response = io.BytesIO(data)
+            response.status = 200
+            with patch.object(fetch_sources, "git", return_value=pointer), \
+                 patch.object(fetch_sources.urllib.request, "urlopen", return_value=response):
+                fetch_sources.materialize_aggregate(directory, "1" * 40)
+            self.assertEqual(archive.read_bytes(), data)
+
+    def test_corrupt_lfs_download_does_not_replace_the_pointer(self):
+        data = b"test archive object" * 30
+        pointer = ("version https://git-lfs.github.com/spec/v1\n"
+                   f"oid sha256:{hashlib.sha256(data).hexdigest()}\nsize {len(data)}")
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            archive = directory / "PHP-Webshell.zip"
+            archive.write_text(pointer)
+            response = io.BytesIO(b"x" * len(data))
+            response.status = 200
+            with patch.object(fetch_sources, "git", return_value=pointer), \
+                 patch.object(fetch_sources.urllib.request, "urlopen", return_value=response):
+                with self.assertRaisesRegex(RuntimeError, "digest"):
+                    fetch_sources.materialize_aggregate(directory, "1" * 40)
+            self.assertEqual(archive.read_text(), pointer)
+
+    def test_verify_only_never_downloads_an_unresolved_lfs_object(self):
+        data = b"test archive object" * 30
+        pointer = ("version https://git-lfs.github.com/spec/v1\n"
+                   f"oid sha256:{hashlib.sha256(data).hexdigest()}\nsize {len(data)}")
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            (directory / "PHP-Webshell.zip").write_text(pointer)
+            with patch.object(fetch_sources, "git", return_value=pointer), \
+                 patch.object(fetch_sources.urllib.request, "urlopen", side_effect=AssertionError("network forbidden")):
+                with self.assertRaisesRegex(RuntimeError, "LFS pointer"):
+                    fetch_sources.materialize_aggregate(directory, "1" * 40, verify_only=True)
+
     def test_existing_checkout_with_wrong_revision_is_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -99,6 +145,27 @@ class AnalysisRegression(unittest.TestCase):
         self.assertAlmostEqual(gat["base"]["18 novel webshells: recall"][0], 0.6444444444444444)
         self.assertAlmostEqual(gat["aug"]["18 novel webshells: recall"][0], 0.5444444444444444)
         self.assertAlmostEqual(gat["base"]["all benign files: FPR"][0], 0.025169273873453187, places=5)
+
+
+class EvidenceRegression(unittest.TestCase):
+    def prediction(self):
+        from common import metrics
+        probabilities = [.4999996, .7, .1, .8]
+        labels = [0, 1, 0, 1]
+        sha = ["a", "b", "c", "d"]
+        result = dict(test=metrics(labels, np.array(probabilities) >= .5),
+                      pred=dict(sha=sha, y=labels, p=probabilities))
+        return result, dict(test=sha), dict(zip(sha, ("benign", "webshell", "benign", "webshell")))
+
+    def test_full_precision_probabilities_reproduce_threshold_counts(self):
+        result, split, labels = self.prediction()
+        check_prediction(result, split, labels, "near-threshold test")
+
+    def test_rounded_threshold_probability_is_rejected_if_it_changes_confusion_counts(self):
+        result, split, labels = self.prediction()
+        result["pred"]["p"][0] = .5
+        with self.assertRaisesRegex(ValueError, "confusion matrix"):
+            check_prediction(result, split, labels, "rounded test")
 
 
 if __name__ == "__main__":

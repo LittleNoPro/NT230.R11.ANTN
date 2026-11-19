@@ -1,0 +1,142 @@
+{
+  "status": "passed",
+  "at_utc": "2026-11-19T05:25:27.427128+00:00",
+  "scope": "Complete corrected v2 computational evaluation, local full validation, historical integrity, matched evaluated core source, rendered reports/slides, and CPU demo portability",
+  "v2": {
+    "checked_runs": 346,
+    "checked_splits": 40,
+    "evidence": "evaluation/v2/",
+    "sealed_artifacts": 416,
+    "cuda_gnn_runs": 156,
+    "baseline_runs": 190,
+    "evaluated_core_files_matched": 71,
+    "local_full_validation": "passed: 346 runs, 40 splits, present private demo files"
+  },
+  "historical": {
+    "checked_runs": 346,
+    "checked_splits": 40,
+    "historical_hashes": 390
+  },
+  "regression_tests": {
+    "passed": 13,
+    "environment": "evaluated GPU image"
+  },
+  "evaluated_core_source_matches_workspace": true,
+  "reports": {
+    "report/main.pdf": {
+      "pages": 6,
+      "sha256": "ae8ccd9eb2fb2d05ea00726d40dab7f88660e541539b2667892c67126361e330",
+      "captions_before_references": true,
+      "text_within_page_bounds": true,
+      "unresolved_typesetting_warnings": false,
+      "final_column_bottom_difference_pt": 2.12
+    },
+    "report/extended.pdf": {
+      "pages": 15,
+      "sha256": "476a475f6f370386847cc8e9b9551eb16b06b983797e1e6be39bbd1c805c1a6e",
+      "captions_before_references": true,
+      "text_within_page_bounds": true,
+      "unresolved_typesetting_warnings": false
+    },
+    "report/slides.pdf": {
+      "pages": 12,
+      "sha256": "60815636c87c2e150985d2d80eaa0472340607f10df69ce4fa49c6f38c9a6ce4",
+      "text_within_page_bounds": true,
+      "unresolved_typesetting_warnings": false
+    }
+  },
+  "visual_review": {
+    "status": "passed",
+    "method": "Rendered full pages and contact sheets; corrected concept maps and slide-table paragraph flow inspected separately.",
+    "pages": {
+      "report/main.pdf": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "report/extended.pdf": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "report/slides.pdf": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    "reviewed_pdf_sha256": {
+      "report/main.pdf": "ae8ccd9eb2fb2d05ea00726d40dab7f88660e541539b2667892c67126361e330",
+      "report/extended.pdf": "476a475f6f370386847cc8e9b9551eb16b06b983797e1e6be39bbd1c805c1a6e",
+      "report/slides.pdf": "60815636c87c2e150985d2d80eaa0472340607f10df69ce4fa49c6f38c9a6ce4"
+    },
+    "issues_corrected": [
+      "Overlapping concept-map boxes",
+      "Slide text flowing alongside its table"
+    ],
+    "captions_and_references": "No pending floats interrupt the bibliography",
+    "abstract_revision": {
+      "at_utc": "2026-11-19T05:52:15.300862+00:00",
+      "method": "Reviewed rendered first pages and contact sheets for pages with changed layout. Compared remaining pages with the reviewed PDFs."
+    },
+    "final_proofread": {
+      "at_utc": "2026-11-19T06:07:04.037559+00:00",
+      "method": "Proofread both manuscripts, checked rendered abstracts against saved metrics, and reviewed rendered pages, including both final reference layouts."
+    }
+  },
+  "human_label_audit": {
+    "decisions": 300,
+    "completed": 0,
+    "status": "pending",
+    "scope": "Independent human review; disclosed limitation, not automated or invented"
+  },
+  "cpu_demo": {
+    "status": "passed",
+    "checked_files": 12,
+    "matching_verdicts": true,
+    "maximum_printed_probability_difference": 0.0,
+    "record": "results/demo_validation.json"
+  },
+  "construct_study": {
+    "cases": 22,
+    "pairs": 11,
+    "runtime": {
+      "php": "8.2.35",
+      "php_parser_commit": "715f4d25e225bc47b293a8b997fe6ce99bf987d2",
+      "lchecker_commit": "c8a3646872a937024c3dd3f1dbe346832f55ef62",
+      "extractor_sha256": "36c8d951f50ce2ddd549e621316c76a48f636d8b2c7fd43cdf40d1abd8c954fc"
+    },
+    "samples_executed": false,
+    "classifier_metrics": "not measured"
+  },
+  "corpus_case_inspection": {
+    "cases": 3,
+    "selection": "purposive seed-0 prediction errors",
+    "independent_label_adjudication": false,
+    "record": "report/generated/corpus_case_review.json"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "checked_runs": 346,
+  "checked_splits": 40,
+  "historical_hashes": 390,
+  "audit_status": {
+    "sheet_Duc": {
+      "pending": 100
+    },
+    "sheet_Tu": {
+      "pending": 100
+    },
+    "sheet_Vu": {
+      "pending": 100
+    }
+  },
+  "scope": "saved predictions and recorded legacy clusters; does not establish absence of unclustered near-duplicates or rerun model training"
+}

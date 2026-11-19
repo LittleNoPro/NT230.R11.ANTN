@@ -166,6 +166,7 @@ def protocols(S):
 def per_source_fpr(S):
     man = pd.read_csv(DATA / "manifests/manifest_all.csv").drop_duplicates("sha256").set_index("sha256")
     rows, out = [], {}
+    test_counts = None
     for name, pat in [("GlareShell GAT", "cross_gat_s?"), ("GlareShell GCN", "cross_gcn_s?"),
                       ("TF-IDF + LR", "bl_cross_source_tfidf_lr_s?"), ("Rule: any risky call", "bl_cross_source_rule_risk_s?")]:
         runs = load(pat)
@@ -175,15 +176,20 @@ def per_source_fpr(S):
         for r in runs:
             df = pd.DataFrame(dict(sha=r["pred"]["sha"], y=r["pred"]["y"], p=r["pred"]["p"]))
             df["source"] = man.loc[df.sha, "source"].values
+            counts = df[df.y == 0].groupby("source").size().to_dict()
+            if test_counts is not None and counts != test_counts:
+                raise ValueError("cross-source models do not share the same per-source test counts")
+            test_counts = counts
             for s, d in df[df.y == 0].groupby("source"):
                 per[s].append(float((d.p >= 0.5).mean()))
         out[name] = {s: mean_ci(v) for s, v in per.items()}
     srcs = sorted({s for v in out.values() for s in v})
     for s in srcs:
-        n = int(((man.subset == "heldout") & (man.source == s) & (man.label == "benign") & (man.keep_ws == 1)).sum())
+        n = int(test_counts[s])
         rows.append([s.replace("__", "/").replace("_", r"\_"), str(n)] + [fmt(out[m][s], 4) if s in out[m] else "--" for m in out])
     latex_table(rows, ["Held-out project", "Files"] + list(out), TAB / "per_source_fpr.tex")
     S["per_source_fpr"] = out
+    S["per_source_test_counts"] = test_counts or {}
 
 
 def leakage_and_data(S):
@@ -432,9 +438,13 @@ def hard_benign(S):
     if not hard.exists():
         return
     mh = pd.read_csv(hard)
+    main_labels = pd.read_csv(DATA / "manifests/manifest_all.csv")
+    main_labels = main_labels[main_labels.keep_exact == 1].drop_duplicates("sha256").set_index("sha256").label
+    cross_test = json.loads((SPLITS / "cross_source_s0.json").read_text())["test"]
+    n_novel = int((main_labels.loc[cross_test] == "webshell").sum())
     groups = {"all benign files: FPR": ("all", 0), "all webshells: recall": ("all", 1),
               "clean test: webshell recall": ("cg", 1), "clean test: FPR": ("cg", 0),
-              "unseen large projects (\\xs): FPR": ("xs", 0), "18 novel webshells: recall": ("xs", 1)}
+              "unseen large projects (\\xs): FPR": ("xs", 0), f"{n_novel} novel webshells: recall": ("xs", 1)}
     for src, name in (("opnsense__core", "OPNsense core"), ("osTicket__osTicket", "osTicket"), ("mybb__mybb", "MyBB")):
         groups[f"unseen small app {name}: FPR"] = (src, 0)
     groups["12 benign probe scripts: flagged"] = ("probe_benign", 0)

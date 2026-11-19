@@ -1,14 +1,5 @@
-
-\paragraph{Summary of findings}
-\begin{itemize}
-  \item \textbf{RQ1:} the headline performance is reproduced: F1 0.98 on a paper-style protocol (paper: 0.97--0.99).
-  \item \textbf{RQ2:} the component claims are not established: GAT has no significant advantage over GCN or GIN; dimension and context
-        sweeps show no resolved optimum, and normalisation/risk weights do not significantly help (paired tests, $p \geq 0.07$).
-  \item \textbf{RQ3:} 77\% of test webshells leak via near-duplicates (F1 $-$2 points without them); a token
-        TF-IDF + LR baseline is better than every GNN, and graph statistics alone reach F1 0.92.
-  \item \textbf{RQ4:} on four unseen benign projects the FPR rises from 0.4\% to 1.7\%; recall on webshells from
-        new collections is 0.54--0.64, and only 6\% at a 0.1\% alarm budget; 10 of 12 small legitimate scripts are flagged. The detector has learned
-        ``not framework code'' rather than ``malicious''.
-  \item \textbf{Improvement:} training on five small benign applications lowers the GAT FPR from 2.5\% to 0.9\%
-        on all benign test files ($p=0.006$, overall recall difference inconclusive), but 8 of the 12 scripts remain flagged.
-\end{itemize}
+\paragraph{Main findings}
+In the random splits, \result{leakage_webshell} of test webshells share a detected cluster with a training
+file, averaged over five seeds. The lexical baseline outperforms GAT on the grouped splits and on held-out
+sources. The construct study identifies cases in which files with different input dependencies or exception
+paths produce the same graph.

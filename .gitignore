@@ -16,6 +16,9 @@ report/*.aux
 report/*.log
 report/*.out
 report/*.toc
+report/*.nav
+report/*.snm
+report/*.vrb
 report/*.bbl
 report/*.blg
 
@@ -26,7 +29,7 @@ GlareShell.pdf
 reproductions/
 .venv/
 
-# Generated local verification summaries
-results/artifact_check.json
-results/report_layout.json
-results/validation.json
+# Public v2 evidence keeps numeric graph statistics only.
+/evaluation/**/data/processed/*
+!/evaluation/v2/data/processed/graph_stats.csv
+!/evaluation/v2/data/processed/graph_stats_hard.csv

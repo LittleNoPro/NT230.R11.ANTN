@@ -16,6 +16,7 @@ import hashlib
 import json
 import pickle
 import re
+import os
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
@@ -95,7 +96,7 @@ def extract():
         lst.unlink()
         return p.returncode
 
-    with ThreadPoolExecutor(6) as ex:
+    with ThreadPoolExecutor(int(os.environ.get("GLARESHELL_EXTRACT_WORKERS", "4"))) as ex:
         codes = list(ex.map(lambda t: run(*t), enumerate(chunks)))
     done = {json.loads(l)["id"] for p in ICFG.glob("part-*.jsonl") for l in open(p)}
     print("chunks", len(chunks), "non-zero exit", sum(c != 0 for c in codes), "records", len(done), "of", len(rows))
@@ -132,6 +133,7 @@ def graphs():
     with open(PROC / "graphs_aug.pkl", "wb") as f:
         pickle.dump(G, f, protocol=5)
     st = pd.DataFrame(stats).merge(m[["sha256", "subset", "source"]], on="sha256")
+    st.to_csv(PROC / "graph_stats_hard.csv", index=False)
     print("new statements", len(voc["norm"]) - n0)
     print(st.groupby(["subset", "source"]).agg(n=("sha256", "size"), empty=("n_nodes", lambda s: int((s == 0).sum())),
                                                median_nodes=("n_nodes", "median")).to_string())
@@ -193,7 +195,7 @@ def tfidf():
             yt = [ymap.get(k, 0) for k in sp["test"]]
             t = metrics(yt, p >= 0.5)
             dump_json(dict(cfg=dict(name=name, split=kind, seed=seed), test=t,
-                           pred=dict(sha=sp["test"], y=yt, p=[round(float(x), 5) for x in p])), RUNS / f"{name}.json")
+                           pred=dict(sha=sp["test"], y=yt, p=[float(x) for x in p])), RUNS / f"{name}.json")
             print(f"{name:24s} FPR={t['fpr']:.4f} R={t['recall']:.4f}", flush=True)
 
 

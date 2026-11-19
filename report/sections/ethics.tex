@@ -1,21 +1,30 @@
-\section{Reproducibility, safety and ethics}\label{sec:ethics}
-\paragraph{Handling live malware} The corpus contains working webshells. Our rules (also in \texttt{README.md}):
-samples are \emph{only parsed} by PHP-Parser or read as bytes -- no script includes, evaluates or serves them, and
-the extractor is invoked on lists of paths, never inside a web server; \texttt{samples/} and every derived file that
-contains code fragments (\texttt{data/processed/}) are git-ignored; the Docker image runs with
-\texttt{--network none} and the samples mounted read-only; for hand-over to graders, \texttt{scripts/pack\_samples.sh}
-builds a password-protected archive (password \texttt{infected}, the customary convention) with a SHA-256 checksum,
-to be shared privately. The development VM can be rolled back from a snapshot after use. The repository publishes
-only hashes, paths, aggregate statistics and code. We do not release any new webshell, payload or evasion
-technique; the evasion classes we discuss are already documented in the public collections.
+\section{Safety, ethics and reproducibility}\label{sec:ethics}
+\paragraph{Static analysis only}
+We read samples as data for static analysis. The training container mounts the corpus read-only and runs
+with networking disabled. Raw sources, ICFG code fragments, pickles, caches and
+weights remain outside Git. The public evidence contains hashes, paths, source labels, numeric statistics and
+predictions. PHP-Construct-22 is original benign code with an explicit CC0 manifest.
 
-\paragraph{Licenses} Benign projects are GPL/LGPL/MIT and are re-fetched from upstream rather than redistributed.
-Several webshell collections state no license; we reference them by URL and commit only.
+\paragraph{Licenses and distribution}
+The source lock and data card record upstream licences where available. The fetched source retains its
+upstream notices. Any sample archive prepared for grading is private and includes a SHA-256 checksum.
 
-\paragraph{Reproducibility artefacts}
-\texttt{scripts/fetch\_sources.sh} (pinned revisions), \texttt{scripts/setup\_tools.sh} (LChecker @c8a3646,
-PHP-Parser v4.19.4, no composer needed), \texttt{requirements.txt} (exact versions), \texttt{Dockerfile},
-\texttt{scripts/reproduce.sh} (end-to-end), the manifest with SHA-256 of every sample (integrity check), the splits
-as JSON, every run's configuration, metrics and per-file predictions as JSON (\texttt{results/runs/}), and
-\texttt{src/analyze.py}, which regenerates saved-prediction analyses (extraction/error/timing regeneration requires raw extraction files), and \texttt{src/construct\_cases.py} for the controlled construct study. \texttt{scripts/build\_report.sh} includes BibTeX. Historical hashes are sealed in \texttt{results/provenance.json}; corrected v2 runs use isolated output directories. The independent human label audit remains pending. Total runtime on our laptop:
-dominated by the 115 GNN runs (5.2 GPU-hours measured); ICFG extraction costs 11\,ms per file, i.e.\ under 5 CPU-minutes for the whole corpus; baselines and analysis add minutes.
+\paragraph{Evidence and reproduction}
+\texttt{scripts/reproduce.sh} builds isolated v2 inputs, verifies source bytes, prepares graphs/splits, trains the
+planned configurations and validates the resulting inventory. \texttt{src/run\_metadata.py} checks CUDA and records
+runtime/package/extension versions, image ID and source hashes. Seeds and the actual retained predictions are
+provided; parallel Gensim training and CUDA scatter operations can still vary numerically.
+The runtime coordinator overlaps independent groups and keeps shared embedding-cache writes in one group.
+No model settings or seeds are reduced to fit resources.
+
+The published snapshot under \texttt{evaluation/v2/} has \result{checked_runs} checked runs and
+\result{checked_splits} splits. \texttt{src/check\_evaluation.py} verifies exact configurations, test IDs, labels,
+full-precision probabilities, confusion counts and metrics, then seals the evidence with SHA-256. Its
+\texttt{--verify-seal} mode needs only standard-library Python. The historical v1 seal remains separate.
+\texttt{report/render\_metrics.py} checks the v2 seal before generating manuscript numbers and tables.
+\texttt{scripts/build\_report.sh} runs LaTeX/BibTeX and checks rendered text bounds, references, caption order and
+main-report column balance; visual inspection complements these checks.
+
+Saved-prediction analysis and report rendering require no GPU or raw malware. Rebuilding extraction statistics
+and the corpus requires the pinned raw sources. The measured parsing/model times describe this bounded runtime;
+we make no industrial-server throughput or deployment-effectiveness claim.

@@ -1,0 +1,82 @@
+{
+  "status": "passed",
+  "at_utc": "2026-11-19T05:12:27.439477+00:00",
+  "scope": "portability of the copied private static demo; no detection-accuracy estimate",
+  "device": "cpu",
+  "image_id": "sha256:b7c1f11814096c7b695133242618020a6182024759c319ba321fbeeb9f31b2f2",
+  "elapsed_seconds": 83.81,
+  "reference": "evaluation/v2/results/probe_benign.txt",
+  "checked_files": 12,
+  "matching_verdicts": true,
+  "matching_statement_counts": true,
+  "probability_comparison": "printed three-decimal probabilities; absolute tolerance 0.002",
+  "maximum_printed_probability_difference": 0.0,
+  "models_sha256": {
+    "fasttext.kv": "fa850efd1227e5cf575399669556621e477a53c32b86c4d8352b734dff619eb2",
+    "fasttext.kv.vectors_ngrams.npy": "c187ad04b42e59e1c1d200606295ef4158a92f1d17c705430801a4f8715945bc",
+    "fasttext.kv.vectors_vocab.npy": "6dda82e260fc773dbff66940dbb36e4080ce0021ef236149c390dd41f7d8149c",
+    "gat.pt": "7860ecf281f46af124acd37e2bab8c910fbc9ce8fbd906b4e5de2e31a86e44c4"
+  },
+  "probes": {
+    "cleanup_cron.php": {
+      "verdict": "WEBSHELL",
+      "probability": 0.511,
+      "statements": 8
+    },
+    "contact_form.php": {
+      "verdict": "WEBSHELL",
+      "probability": 1.0,
+      "statements": 17
+    },
+    "download.php": {
+      "verdict": "WEBSHELL",
+      "probability": 0.999,
+      "statements": 9
+    },
+    "export_csv.php": {
+      "verdict": "WEBSHELL",
+      "probability": 0.998,
+      "statements": 11
+    },
+    "guestbook.php": {
+      "verdict": "WEBSHELL",
+      "probability": 1.0,
+      "statements": 9
+    },
+    "hello.php": {
+      "verdict": "benign",
+      "probability": 0.13,
+      "statements": 2
+    },
+    "image_upload.php": {
+      "verdict": "WEBSHELL",
+      "probability": 1.0,
+      "statements": 9
+    },
+    "json_api.php": {
+      "verdict": "benign",
+      "probability": 0.407,
+      "statements": 16
+    },
+    "login.php": {
+      "verdict": "WEBSHELL",
+      "probability": 0.61,
+      "statements": 11
+    },
+    "ping_tool.php": {
+      "verdict": "WEBSHELL",
+      "probability": 1.0,
+      "statements": 5
+    },
+    "router.php": {
+      "verdict": "WEBSHELL",
+      "probability": 1.0,
+      "statements": 5
+    },
+    "template_render.php": {
+      "verdict": "WEBSHELL",
+      "probability": 0.988,
+      "statements": 5
+    }
+  }
+}

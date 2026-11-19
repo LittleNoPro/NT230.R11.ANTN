@@ -1,0 +1,15 @@
+\begin{tabularx}{\linewidth}{@{}p{.27\linewidth}Xl@{}}
+\toprule
+Claim / item & Measured v2 evidence & Assessment \\ \midrule
+High F1 with graph pipeline & Table-4 means 0.979--0.981; rebuilt corpus, five seeds & \repro{Comparable level} \\
+FastText ranks first among embeddings & FastText achieves the highest mean F1 & \repro{Same top embedding} \\
+GAT advantage over GCN/GIN & Paired GAT--GCN $p=0.5329$; GAT--GIN $p=0.3522$ & \notrepro{Not established} \\
+Normalisation+risk F1 gain (random) & Full minus raw +0.0015; $p=0.5733$ & \notrepro{Not established} \\
+Universal dimension/window optimum & Three-seed descriptive curves on this benchmark & \notrepro{Not established} \\
+GAT vs. lexical baseline (clean) & GAT minus LR F1 -0.0261; $p=0.0022$ & \notrepro{Text higher} \\
+Auxiliary benign-data intervention & GAT FPR difference -0.0143; $p=5.30\times10^{-5}$; novel recall 0.64$\to$0.48 & \improved{Lower FPR; recall cost} \\
+Duplicate/source control and construct study & Corrected v2 clusters/splits; 22 original CC0 fixtures; graph limitations retained & \improved{Extended} \\
+Industrial server effectiveness & Static public corpora only; no deployment or runtime traces & \notrepro{Not evaluated} \\
+Independent human label audit & 150 restored files; 300 unfilled decisions; no agreement/error-rate claim & \notrepro{Pending} \\
+\bottomrule
+\end{tabularx}

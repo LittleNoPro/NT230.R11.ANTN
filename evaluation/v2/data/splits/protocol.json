@@ -1,0 +1,11 @@
+{
+  "clustering": "minhash-all-pairs-v2",
+  "candidate_search": "approximate MinHash-LSH; all bucket pairs verified",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ]
+}

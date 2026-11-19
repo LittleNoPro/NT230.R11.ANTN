@@ -1,12 +1,12 @@
 \section{Controlled PHP construct study}\label{sec:constructs}
-To inspect what the graph actually retains, we add \textbf{PHP-Construct-22}: eleven pairs of original,
-benign toy programs stored as \texttt{.php.txt}, with a CC0 license, source hashes, label rationale and an
-\texttt{analysis\_only} split in \texttt{tests/construct\_cases/manifest.json}. They are excluded from all
-classifier splits. \texttt{src/construct\_cases.py} passes them only to the parser, never to the PHP executor.
+To inspect what the extractor retains, we created \textbf{PHP-Construct-22}, eleven pairs of small benign
+programs stored as \texttt{.php.txt}. The manifest records their CC0 licence, source hashes, label rationale and
+\texttt{analysis\_only} designation (\texttt{tests/construct\_cases/manifest.json}).
+\texttt{src/construct\_cases.py} parses the fixtures independently of the classifier experiments.
 The retained JSON and DOT files in \texttt{results/construct\_cases/} contain every emitted node and edge.
-This study used PHP~8.2.35, PHP-Parser~4.19.4 and the pinned LChecker revision; the earlier classifier
-experiments used PHP~8.3. No trained checkpoint is available in this checkout, so we report extractor
-observations, not new classifier predictions or detection metrics.
+This study used PHP~8.2.35, PHP-Parser~4.19.4 and the pinned LChecker revision; the v2 classifier
+experiments use the same PHP~8.2.35 runtime. This controlled study deliberately reports extractor
+observations without classifier predictions or detection metrics.
 
 \begin{table*}[!t]\centering\footnotesize
 \caption{Observed construct pairs (A/B). ``Same graph'' compares normalised statements, risk and edges,
@@ -16,14 +16,14 @@ excluding raw statement text. Risk: 0 normal, 1 callback/obfuscated, 2 critical.
 \end{table*}
 
 \paragraph{Data dependencies and sanitisation}
-The edges encode control flow and call/return relations. There are \emph{no explicit def-use or taint edges},
-no source-to-sink proof and no inter-file data-flow analysis. Escaping an output with
-\texttt{htmlspecialchars} changes its statement embedding input but does not prove to the classifier that
-the output is safe. More strongly, the \emph{Different input dependencies} pair assigns request input to
+The edges encode control flow and call and return relations. The representation omits explicit
+definition-to-use and taint edges. An escaping call changes the text supplied to the embedding, with no
+guarantee that the classifier can infer its effect. In the \emph{Different input dependencies} pair, both scripts
+assign request input to
 \texttt{\$tainted}, a fixed literal to \texttt{\$safe}, then outputs either variable through
 \texttt{htmlspecialchars}. Constant-assignment pruning removes the second assignment, and normalisation
-maps both variables to \texttt{\$local}; both files consequently yield the identical two-node graph below.
-Their runtime dependencies differ. This is a concrete information loss rather than a classification error.
+maps both variables to \texttt{\$local}. The two files yield the same two-node graph despite their different
+runtime dependencies.
 
 \begin{figure}[!t]\centering
 \begin{tikzpicture}[node distance=5mm,box/.style={draw,rounded corners,align=center,font=\scriptsize,text width=0.88\linewidth},->,>=Stealth]
@@ -54,6 +54,5 @@ acceptance therefore does not imply faithful support for every PHP construct or 
 \paragraph{Deduplication semantics}
 The literals \texttt{'hello world'} and \texttt{'helloworld'} give different graph text but collide under
 the historical byte-level whitespace hash. The corrected pipeline hashes framed PHP lexical tokens while
-discarding only \texttt{T\_WHITESPACE}; string and comment bytes remain intact. This correction and the
-clustering correction change the protocol, so the saved classifier results remain explicitly historical
-until a complete retraining on version~2 splits is performed.
+discarding only \texttt{T\_WHITESPACE}; string and comment bytes remain intact. These corrections change the protocol. The classifier evidence in this report therefore comes from
+a fresh version~2 evaluation, while the version~1 inputs and predictions remain separately sealed.

@@ -1,98 +1,99 @@
 \section{Dataset: rebuilding the corpus and measuring its quality}\label{sec:dataset}
-We take the \emph{Dataset Research Track}: besides rebuilding the paper's corpus we release a
-provenance-documented manifest with two deduplication levels, near-duplicate clusters and two additional
-evaluation protocols (``GlareShell-R''; data card in \texttt{docs/DATA\_CARD.md}, schema in
-\texttt{docs/SCHEMA.md}, label guide in \texttt{docs/LABEL\_GUIDE.md}).
+GlareShell-R provides the benchmark manifest, provenance, label guide, near-duplicate clusters and explicit
+splits needed to inspect the reproduction. The PHP-Construct-22 fixtures are used separately to analyse
+the graph representation (\Cref{sec:constructs}).
 
 \subsection{Sources and provenance}
-We rebuilt the available sources of the paper's Table~1 (references are now fixed in \texttt{sources.lock.tsv}) (\Cref{tab:funnel}).
-\texttt{ysrc/webshell-sample} has been deleted from GitHub; its files survive only inside the
-Cyc1e183 aggregate~\cite{cyc1e183}, a ``cleaned'' set of 2,917 webshells drawn from 17 collections, which
-dominates the webshell side. Its files are named by MD5 and carry no origin; matching MD5s against the
-collections we could clone recovers the origin of only 646 of them (2,271 remain \emph{unknown}).
-Benign files come from pinned releases (WordPress~6.4.3, Drupal~10.2.5, Laravel skeleton v10.3.3,
-PHPMailer~6.9.1, doorGets CMS). For the dataset track we add four \emph{held-out} benign projects
-(Laravel framework v10.48.4, phpMyAdmin~5.2.1, Joomla~5.0.3, Matomo~5.0.3) and two held-out webshell collections
-(BlackArch, xl7dev). Licenses range from CC0/MIT to GPL; several webshell collections state none, which is
-one more reason we never redistribute samples publicly (\Cref{sec:ethics}).
+The lock file \texttt{sources.lock.tsv} contains 24 full commit IDs: 15 main benchmark repositories and
+nine small benign applications used in a separate experiment. The unavailable \texttt{ysrc/webshell-sample}
+collection is represented through the Cyc1e183 aggregate~\cite{cyc1e183}. Its Git checkout contains an LFS
+pointer; the fetcher downloads the committed archive object, verifies its size and SHA-256 and checks every
+extracted member. An unresolved pointer is rejected rather than treated as an empty dataset.
+The aggregate contains 2,917 candidate files. MD5 matching against available collections attributes 646;
+2,271 have unknown origin. Attribution follows a fixed collection priority and does not establish earliest
+publication, authorship, malware family or infection date.
 
-\begin{table*}[!t]
-\centering\footnotesize
-\caption{Corpus funnel per source. ``exact'' = first copy per SHA-256 (the paper's dedup); ``ws'' = first copy per
-whitespace-insensitive hash. Duplicates are resolved in favour of the paper sources, so the small numbers for the
-individual webshell collections mean that their files are already inside Cyc1e183.}
-\label{tab:funnel}
-\input{../results/tables/dataset_funnel.tex}
+The five paper benign sources are WordPress~6.4.3, Drupal~10.2.5, Laravel skeleton v10.3.3,
+PHPMailer~6.9.1 and doorGets CMS. Four other repositories are held out: Laravel framework v10.48.4,
+phpMyAdmin~5.2.1, Joomla~5.0.3 and Matomo~5.0.3. BlackArch and xl7dev supply the held-out webshell
+collections. Small-application training/test projects are listed in \Cref{sec:hard}.
+Several collections state no license; the repository provides metadata and upstream references rather
+than publicly redistributing their code. Exact revisions, relative paths, hashes and known licenses are
+recorded in the lock file and data card.
+
+\begin{table*}[!t]\centering\footnotesize
+\caption{V2 corpus funnel per source. Exact: first retained SHA-256 representative. Lexical: first token-whitespace
+representative. Paper sources take priority over held-out sources when a file appears in both.}\label{tab:funnel}
+\begin{fittable}\input{../evaluation/v2/results/tables/dataset_funnel.tex}\end{fittable}
 \end{table*}
 
-\paragraph{Reproduced composition}
-After exact-hash deduplication the paper sources yield \textbf{3,097 webshells} (paper: 3,104) and 12,930 benign
-files. The paper reports 10,375 benign files without saying how they were chosen; we subsample proportionally per
-project (seed 2024) to 10,376 files in v1 because independent rounding exceeded the 10,375 target by one. Version~2 uses largest-remainder allocation to meet the target exactly. Similar counts do not establish identical samples or deduplication.
+\paragraph{Labels and cleaning}
+Public webshell collections supply the \emph{webshell} label, and pinned applications supply the
+\emph{benign} label. The labels describe provenance and can mischaracterise individual files, such as
+bundled helpers or deliberately vulnerable test fixtures.
+There are 26,486 candidate files and \result{main_samples} retained SHA-256 representatives across both subsets.
+The paper sources retain 3,097 webshells and 12,930 benign files. Benign files are sampled proportionally by
+project with seed~2024 and largest-remainder allocation to exactly \result{paper_random_all_benign}.
+Files without a PHP opening tag and groups carrying conflicting labels are excluded by the manifest builder.
+Twenty-seven candidate rows carry a token-hash label conflict in v2; exclusions are recorded, not manually relabelled.
+No temporal generalisation is claimed: repository upload dates are neither infection dates nor reliable family dates.
 
-\subsection{ICFG extraction statistics}
-\Cref{tab:extraction} shows that extraction itself is \emph{label-dependent}: webshells are older, less
-well-formed and much larger. 139 webshells (4.5\%) contain syntax errors that PHP-Parser recovers from, 477
-(15.4\%) exceed the 2,000-statement cap (benign: 0.4\%), and 53 produce an empty graph. These are signals a
-classifier can exploit without understanding behaviour (graph size), and failure modes that a real deployment must
-handle (an unparsable upload is itself suspicious). Statement counts of webshells (\Cref{fig:stmtdist}) span four
-orders of magnitude, as in the paper's Fig.~5. Extraction takes 11\,ms per file on average (P95 40\,ms) on one core.
+\subsection{Extraction and representation statistics}
+\Cref{tab:extraction} includes unsuccessful, empty and truncated graphs rather than dropping them after observing
+classification errors. The paper webshell cohort has 139 recovered parse errors, 53 empty graphs and 477 graphs
+at the 2,000-node cap. Four files have failed or missing extraction records after retries.
+Failures use an empty-graph fallback. A classifier can exploit parseability, graph size or truncation as
+population cues. These statistics therefore describe both robustness limits and possible source confounds.
+The mean recorded per-file extraction time is \result{extract_ms_mean}\,ms
+(P95 \result{extract_ms_p95}\,ms) in the bounded container; it is not industrial-server throughput.
 
-\begin{table*}[!t]
-\centering\footnotesize
-\caption{ICFG extraction outcome (after the four extractor fixes of \Cref{sec:method}).}
-\label{tab:extraction}
-\input{../results/tables/extraction.tex}
+\begin{table*}[!t]\centering\footnotesize
+\caption{Measured v2 extraction outcomes, including failure/empty-graph fallbacks.}\label{tab:extraction}
+\begin{fittable}\input{../evaluation/v2/results/tables/extraction.tex}\end{fittable}
 \end{table*}
-
-\begin{figure*}[!t]
-\centering
-\subfloat[Statements per webshell ICFG (cf.\ paper Fig.~5).\label{fig:stmtdist}]{\includegraphics[width=0.42\linewidth]{figures/stmt_dist.pdf}}\hfil
-\subfloat[Near-duplicate cluster sizes, paper webshells.\label{fig:clusters}]{\includegraphics[width=0.42\linewidth]{figures/cluster_sizes.pdf}}
-\caption{Corpus structure.}
+\begin{figure*}[!t]\centering
+\subfloat[Statements per webshell ICFG.\label{fig:stmtdist}]{\includegraphics[width=.42\linewidth]{../evaluation/v2/results/figures/stmt_dist.pdf}}\hfil
+\subfloat[Paper-webshell cluster sizes.\label{fig:clusters}]{\includegraphics[width=.42\linewidth]{../evaluation/v2/results/figures/cluster_sizes.pdf}}
+\caption{V2 corpus structure. Similar graph structure need not mean common malware family or author.}
 \end{figure*}
 
-\subsection{Near-duplicates and leakage}\label{sec:leak}
-Exact hashing is a weak notion of ``unique'' for scripts that are copied, re-saved with different line endings,
-re-branded or re-passworded. We measure duplication at two further levels:
-\begin{itemize}
-  \item \textbf{Whitespace-insensitive hash}: 1,265 of the 2,917 Cyc1e183 files (43\%) are byte-identical once
-        whitespace is removed -- the ``cleaned'' dataset was deduplicated on raw bytes only.
-  \item \textbf{Near-duplicate clusters}: we represent each file by the \emph{set} of its normalised ICFG statements,
-        generate candidates with MinHash-LSH~\cite{broder1997minhash} (128 permutations, 32 bands) and merge pairs whose
-        exact Jaccard similarity is $\ge 0.8$ (union-find). The 3,097 paper webshells collapse into \textbf{1,368
-        clusters}; only 394 webshells are singletons and the largest family has 55 members (\Cref{fig:clusters}).
-        Benign files are much less redundant (12,930 files $\rightarrow$ 11,828 clusters). No cluster mixes labels.
-\end{itemize}
-Under the paper's protocol (random 8:1:1), \textbf{77.0\% $\pm$ 4.4\% of test webshells have a near-duplicate in the
-training set} (5 seeds; benign: 9.0\% $\pm$ 1.4\%). The paper's test set therefore mostly measures recognition of
-already-seen families~\cite{allamanis2019duplication,arp2022dos}.
+\subsection{Corrected duplicate control}\label{sec:leak}
+V2 hashes framed PHP lexical tokens after discarding only \texttt{T\_WHITESPACE}; string, comment and inline-HTML
+bytes remain. This avoids v1's collision between literals such as \texttt{'hello world'} and \texttt{'helloworld'}.
+It is deliberately conservative and does not claim semantic equivalence.
+For near duplicates, each file is represented by its set of normalised ICFG statements. MinHash-LSH uses
+128 permutations and 32 bands; every eligible bucket pair is checked by exact Jaccard similarity and merged at
+$J\geq0.8$. Identical nonempty sets and lexical hashes share the same union-find. Empty graphs merge only by
+lexical hash. There is no large-bucket exclusion or later representative reassignment that can split a component.
+The \result{cluster_files} paper webshells form \result{cluster_clusters} recorded clusters, with
+\result{cluster_singletons} singletons and a largest component of \result{cluster_largest} files.
+There are \result{mixed_clusters} mixed-label components in this run.
+LSH remains approximate: disjoint recorded components do not prove that every similar pair was found.
+Sets discard statement order and multiplicity, so these components are representation clusters, not verified families.
+
+The random protocol has \result{leakage_webshell} $\pm$ \result{leakage_webshell_ci} test-webshell overlap
+with training clusters; benign overlap is \result{leakage_benign} $\pm$ \result{leakage_benign_ci}.
+This is a measured representation-level overlap, not an estimate of all possible leakage~\cite{allamanis2019duplication,arp2022dos}.
 
 \subsection{Evaluation protocols}
 \begin{description}
-  \item[\pr] the paper's protocol: exact dedup, 3,097 webshells / 10,376 benign, stratified random 8:1:1.
-  \item[\cg] leakage-controlled: whitespace dedup (1,747 webshells / 10,372 benign); whole near-duplicate clusters are
-        assigned to train, validation or test (8:1:1 by file count, per label). Same sources as the paper.
-  \item[\xs] generalisation: train/validation of \cg; test = held-out projects/collections after removing anything that
-        shares a cluster with the paper sources: 9,091 benign files from four unseen projects and \textbf{only 18}
-        unseen webshells. The latter is too small to estimate recall precisely (we give Wilson intervals); \xs{} is
-        primarily a \emph{false-positive} stress test, which is the quantity that decides deployability.
-  \item[\texttt{loo\_<X>}] leave-one-collection-out: test webshells = all \cg{} webshells whose earliest public source
-        is collection $X$ (tennc: 222, bartblaze: 99, xl7dev: 77); every near-duplicate cluster containing a test
-        webshell is removed from train/validation; benign train/validation/test as in \cg. This measures recall on a
-        whole collection the model has never seen, with 4--12$\times$ more webshells than \xs.
+\item[\pr] Exact deduplication; \result{paper_random_all_webshell} webshells and
+\result{paper_random_all_benign} benign files; stratified random 8:1:1. Near-duplicate components may cross partitions.
+\item[\cg] Lexical deduplication, removal of mixed-label components, then whole-component assignment towards
+8:1:1 file counts per class. It retains \result{clean_group_all_webshell} webshells and
+\result{clean_group_all_benign} benign files from the paper sources. Counts can vary with group sizes.
+\item[\xs] The clean training/validation partitions, with test files only from held-out sources whose component
+is absent from all paper sources: \result{cross_source_test_benign} benign files and
+\result{cross_source_test_webshell} webshells. This is primarily a source-shift/FPR stress test; the positive cohort is small.
+\item[\texttt{loo\_<X>}] Hold out webshells attributed to one collection by MD5 and priority (tennc, bartblaze or xl7dev).
+Every component touching those test webshells is excluded from training/validation. Benign partitions follow
+\cg. This tests collection attribution, not verified unseen families or future malware.
 \end{description}
-Each protocol is instantiated with 5 seeds. We could not build a meaningful temporal split: git ``first-seen'' dates are upload dates, not
-malware dates -- all 2,917 Cyc1e183 files share one commit (2020-11-13, a single zip), 98\% of xl7dev and 86\% of
-BlackArch files share one day; only \texttt{tennc/webshell} has a spread history (100 distinct days, 2013--2023),
-and its files are mostly already inside the aggregate. Source-disjoint protocols (\xs{} and \texttt{loo}) are our substitute.
+All protocols have five recorded seeds. Before training, we check labels and partition membership, as well
+as cluster separation for protocols that require it. After training, we validate the saved predictions.
 
-\paragraph{Historical protocol and unfinished audit}
-The committed model predictions use the original v1 splits. Review identified incomplete LSH bucket-pair comparisons,
-skipped large buckets and a post-hoc whitespace representative assignment that could break transitive components.
-Version~2 verifies every candidate pair and uses one union-find for all merges; LSH remains an approximate candidate
-search. Version~2 also preserves literal bytes in its whitespace hash. Its model experiments have not been rerun;
-therefore v1 cluster disjointness and the 77\% overlap figure must not be read as exhaustive leakage control.
-\texttt{results/provenance.json} seals the old input/prediction hashes. Fresh output goes to an isolated directory.
-The blinded label-audit protocol has 150 selected files and 300 pending reviewer decisions. No Cohen's $\kappa$
-or label-error prevalence has yet been measured; the qualitative helper-file examples are not a representative audit.
+\paragraph{Historical evidence and human audit}
+Root \texttt{data/} and \texttt{results/} retain sealed v1 inputs and predictions for comparison. All quantitative
+results in this report use v2 evidence under \texttt{evaluation/v2/}; old predictions are not relabelled as retraining.
+The blinded audit includes 150 files and awaits 300 independent reviewer decisions. Agreement and
+label-error prevalence will depend on the completed review.

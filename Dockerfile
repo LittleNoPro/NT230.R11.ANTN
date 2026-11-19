@@ -1,7 +1,7 @@
 # Reproduction environment. Samples are NOT baked into the image: mount them read-only.
 #   docker build -t glareshell-repro .
 #   docker run --rm --gpus all --network none \
-#     -v "$PWD/samples:/work/samples:ro" -v "$PWD/data:/work/data" -v "$PWD/results:/work/results" \
+#     -v "$PWD/samples:/work/samples:ro" -v "$PWD/reproductions:/work/reproductions" \
 #     glareshell-repro bash scripts/reproduce.sh
 # --network none: the container never needs the network after build; samples are only parsed, never executed.
 FROM python:3.11-slim-bookworm
@@ -15,3 +15,4 @@ RUN bash scripts/setup_tools.sh
 COPY src src
 COPY tests tests
 COPY sources.lock.tsv .
+COPY Dockerfile .

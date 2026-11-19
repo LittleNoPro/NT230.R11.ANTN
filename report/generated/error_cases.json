@@ -1,0 +1,45 @@
+{
+  "selection": "seed-0 errors selected by extractor flags and score; illustrative, not random or independently adjudicated",
+  "cases": [
+    {
+      "case": "Paper FN",
+      "run": "t4_gat_s0",
+      "sha256": "068cde77e351ad124f7f559740184b3760964334ef3ae50488a2b22af9bf09d3",
+      "label": "webshell",
+      "source": "Cyc1e183__PHP-Webshell-Dataset",
+      "relpath": "4faf5839b2fbfbe29911221c9c7456ed.php",
+      "score": 0.11398683488368988,
+      "nodes": 0,
+      "observations": [
+        "recovered syntax error",
+        "no flagged API"
+      ]
+    },
+    {
+      "case": "Cross FP",
+      "run": "cross_gat_s0",
+      "sha256": "c9b3fa1dada1058c3e67f6e385c7150a4c5c860afff767a9619e98b34dce52d6",
+      "label": "benign",
+      "source": "laravel__framework",
+      "relpath": "tests/Integration/Foundation/Fixtures/MalformedErrorViews/errors/404.blade.php",
+      "score": 1.0,
+      "nodes": 1,
+      "observations": [
+        "no flagged API"
+      ]
+    },
+    {
+      "case": "Cross FN",
+      "run": "cross_gat_s0",
+      "sha256": "4fd9cb8f4b32483265599d2b54a982521f0312d29f0d0e50c00bee676336f4a2",
+      "label": "webshell",
+      "source": "xl7dev__WebShell",
+      "relpath": "\u8131\u88e4\u811a\u672c/mysql/db_mysql.class.php",
+      "score": 1.9411219909670763e-05,
+      "nodes": 45,
+      "observations": [
+        "no flagged API"
+      ]
+    }
+  ]
+}

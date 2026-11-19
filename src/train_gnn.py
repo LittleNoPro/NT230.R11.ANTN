@@ -134,8 +134,10 @@ def run(cfg, table=None, save=None):
     yt, pt = predict(model, te, dev)
     t_inf = (time.time() - t1)
     res = dict(cfg=cfg, test=metrics(yt, pt >= 0.5), val_f1=best, epochs_run=len(hist), history=hist,
+               runtime=dict(device=dev, torch=torch.__version__, cuda=torch.version.cuda,
+                            gpu=torch.cuda.get_device_name(0) if dev == "cuda" else None),
                secs_embedding=t_emb, secs_train=t_inf, n=dict((k, len(v)) for k, v in ds.items()),
-               pred=dict(sha=split["test"], y=yt.tolist(), p=[round(float(x), 5) for x in pt]))
+               pred=dict(sha=split["test"], y=yt.tolist(), p=[float(x) for x in pt]))
     dump_json(res, RUNS / f"{cfg['name']}.json")
     if save:
         torch.save(dict(cfg=cfg, state=best_state, emb_dim=int(np.asarray(table).shape[1])), save)

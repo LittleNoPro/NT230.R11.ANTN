@@ -1,0 +1,219 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{Madrid}
+\usecolortheme{default}
+\usepackage[T1]{fontenc}
+\usepackage{helvet,courier}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\input{generated/metrics}
+\title[GlareShell v2]{Reproducing GlareShell under Duplicate and Source Controls}
+\subtitle{NT230 course project}
+\author[Tu, Vu, Duc]{Dang Minh Tu \and Vo Quang Vu \and Le Tri Duc}
+\institute[UIT]{University of Information Technology\\Vietnam National University, Ho Chi Minh City}
+\date{Corrected v2 evaluation}
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{What are we trying to detect?}
+\begin{block}{Observation and decision}
+A PHP source file appears or changes on a web server. A static detector assigns a file-level score before execution.
+\end{block}
+\begin{itemize}
+\item Webshell capabilities include command execution, file management and encoded loaders.
+\item Legitimate administration, callbacks and upload features can look similar.
+\item Source alone does not establish authorization or intent.
+\end{itemize}
+\medskip
+\textbf{Questions:} Can we reconstruct the reported method? Which components help? How much do duplicates and source style matter?
+\vfill
+\footnotesize Based on Feng et al., \emph{Computer Networks} 245 (2024), 110406.
+\end{frame}
+
+\begin{frame}{The reconstructed pipeline}
+\centering
+\begin{tikzpicture}[box/.style={draw,rounded corners,align=center,text width=2.2cm,minimum height=1.5cm,font=\small,fill=blue!5},>=Stealth]
+\node[box] (a) {PHP source\\read/parse};
+\node[box,right=.35cm of a] (b) {LChecker CFG\\and ICFG};
+\node[box,right=.35cm of b] (c) {Normalisation\\and risk};
+\node[box,right=.35cm of c] (d) {Statement\\embedding};
+\node[box,right=.35cm of d] (e) {GNN + mean\\pool + MLP};
+\draw[->] (a)--(b);\draw[->] (b)--(c);\draw[->] (c)--(d);\draw[->] (d)--(e);
+\end{tikzpicture}
+\medskip
+\begin{itemize}
+\item One emitted statement is one embedding word; file emission order is one sentence.
+\item Risk levels encode capability; they do not prove malicious intent.
+\item No explicit def-use/taint edges; model edges are made undirected.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A concrete representation limit}
+\begin{columns}
+\begin{column}{.48\textwidth}
+Two benign fixtures read input into one variable and assign a fixed value to another.
+One outputs the input-derived variable; the other outputs the fixed variable.
+\medskip
+
+Constant pruning and local-name normalisation produce the same graph.
+\end{column}
+\begin{column}{.48\textwidth}
+\centering
+\begin{tikzpicture}[box/.style={draw,rounded corners,align=center,text width=5.5cm,font=\small,minimum height=1.1cm},>=Stealth]
+\node[box] (a) {\texttt{\$local = \$\_GET['message'] ?? '';}};
+\node[box,below=.7cm of a] (b) {\texttt{echo htmlspecialchars(\$local);}};
+\draw[->] (a)--(b);
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\medskip
+\begin{block}{PHP-Construct-22}
+22 original benign fixtures, 11 pairs, CC0, analysis-only. Exact nodes/edges are retained.
+These are graph observations, not detection-accuracy estimates.
+\end{block}
+\end{frame}
+
+\begin{frame}{Corpus and corrected evaluation protocols}
+\begin{itemize}
+\item 24 pinned repositories; \result{main_samples} retained exact representatives.
+\item Lexical hashes preserve string/comment bytes. MinHash candidates receive exact Jaccard checks.
+\item LSH is approximate; recorded components are not verified malware families.
+\end{itemize}
+\medskip
+\centering
+\begin{tabular}{lrr}
+\toprule
+Cohort & Webshell & Benign\\\midrule
+Random paper-style & \result{paper_random_all_webshell} & \result{paper_random_all_benign}\\
+Clean whole-component & \result{clean_group_all_webshell} & \result{clean_group_all_benign}\\
+Unseen-source test & \result{cross_source_test_webshell} & \result{cross_source_test_benign}\\\bottomrule
+\end{tabular}\par
+\medskip
+
+\raggedright Labels come from collections/applications; they are source-level proxies.
+\end{frame}
+
+\begin{frame}{Comparisons and validation}
+\begin{itemize}
+\item Six embeddings; GCN, GIN and GAT; lexical, rule and structural/risk-statistics baselines.
+\item Five main seeds; three sweep seeds. Same test IDs within each comparison.
+\item Training-only embeddings/transforms; validation-F1 selection; threshold 0.5.
+\item Precision, recall, F1, FPR; seed intervals and exploratory paired tests.
+\end{itemize}
+\begin{block}{Checked evidence}
+\result{checked_runs} runs and \result{checked_splits} splits: configurations, IDs, labels,
+full-precision scores, confusion counts and metrics verified. SHA-256 seals the snapshot.
+\end{block}
+\end{frame}
+
+\begin{frame}{Core F1 results}
+\centering
+\begin{tabular}{lrr}
+\toprule
+Model & Random F1 & Clean F1\\\midrule
+GCN & \result{gcn_paper_f1} & \result{gcn_clean_f1}\\
+GIN & \result{table4_gin_f1} & not in this comparison\\
+GAT & \result{gat_paper_f1} & \result{gat_clean_f1}\\
+TF-IDF + LR & \result{lr_paper_f1} & \result{lr_clean_f1}\\\bottomrule
+\end{tabular}\par
+\medskip
+
+\raggedright
+\begin{itemize}
+\item Random test webshells sharing a training component: \result{leakage_webshell}.
+\item GAT--GCN paired test: $p=\result{p_gat_gcn}$; GAT--GIN: $p=\result{p_gat_gin}$.
+\item A nominal maximum is distinct from an established expected-performance advantage.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What happens on unseen sources?}
+\centering
+\begin{tabular}{lrr}
+\toprule
+Model & Benign FPR & Webshell recall\\\midrule
+GCN & \result{gcn_cross_fpr_percent} & \result{gcn_cross_recall}\\
+GAT & \result{gat_cross_fpr_percent} & \result{gat_cross_recall}\\
+TF-IDF + LR & \result{lr_cross_fpr_percent} & \result{lr_cross_recall}\\\bottomrule
+\end{tabular}\par
+\medskip
+\raggedright
+\begin{itemize}
+\item \result{cross_source_test_benign} benign files; only \result{cross_source_test_webshell} positive files.
+\item At a 0.1\% test-ROC FPR budget: GAT recall \result{gat_cross_source_recall_fpr01};
+LR \result{lr_cross_source_recall_fpr01}.
+\item Oracle thresholds are optimistic; these are not calibrated deployment alarms.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Do normalisation and risk help?}
+\centering
+\begin{tabular}{lrr}
+\toprule
+Representation & Random GCN F1 & Clean GAT F1\\\midrule
+Raw, no risk & \result{abl_paper_none_f1} & \result{abl_clean_none_f1}\\
+Normalised, no risk & \result{abl_paper_n_f1} & \result{abl_clean_n_f1}\\
+Normalised + risk & \result{abl_paper_nw_f1} & \result{abl_clean_nw_f1}\\\bottomrule
+\end{tabular}\par
+\medskip
+\raggedright
+Full--raw paired tests: random $p=\result{p_abl_paper}$; clean $p=\result{p_abl_clean}$.
+\medskip
+
+The architectures differ between these two comparisons. Five seeds and overlapping intervals do not establish
+equivalence or a universal component ranking.
+\end{frame}
+
+\begin{frame}{Legitimate code and a matched intervention}
+The demo GAT flags \result{demo_probes_flagged}/12 original benign scripts; LR flags \result{lr_probes_flagged}/12.
+These are stress cases, not a representative server sample.
+\medskip
+
+Add \result{hard_train} files from five benign applications; test on different projects and matched IDs.
+\medskip
+\centering
+\begin{tabular}{lrr}
+\toprule
+GAT measurement & Base & Augmented\\\midrule
+Pooled benign FPR & \result{hard_gat_base_fpr} & \result{hard_gat_aug_fpr}\\
+All-webshell recall & \result{hard_gat_base_recall} & \result{hard_gat_aug_recall}\\
+Novel-webshell recall & \result{hard_gat_base_novel_recall} & \result{hard_gat_aug_novel_recall}\\\bottomrule
+\end{tabular}\par
+\medskip
+
+\raggedright Lower FPR comes with lower recall in this run. Auxiliary files have exact/token deduplication only.
+\end{frame}
+
+\begin{frame}{What the study does and does not establish}
+\begin{itemize}
+\item Graph collisions expose information loss in this implementation, not unknown authors' code.
+\item Few projects, correlated public variants and uncertain source labels limit generalisation.
+\item The 150-file human audit still has 300 unfilled decisions; no agreement/error rate is invented.
+\item No industrial-server deployment, dynamic taint proof or general deobfuscation result.
+\end{itemize}
+\begin{block}{Static handling}
+Samples are read/parsed, never executed or served. Raw sources and graph code fragments remain outside Git.
+\end{block}
+\end{frame}
+
+\begin{frame}{Reproducible evidence and next steps}
+\begin{itemize}
+\item Safe snapshot: \texttt{evaluation/v2/}; full configurations and per-file predictions.
+\item Standard-library seal verification; generated report values; 13 regression tests.
+\item Private trained demo and complete pinned sources are available locally and on the GPU VPS.
+\end{itemize}
+\begin{block}{Takeaway}
+Corpus-level F1 measures source-label separation. Representation limits and source-shift tests determine how
+far that result can be interpreted.
+\end{block}
+Next: independent labels, broader legitimate code, calibrated thresholds and new-project evaluation.
+\vfill
+\footnotesize Paper: \href{https://doi.org/10.1016/j.comnet.2024.110406}{Feng et al., GlareShell, 2024}.
+Full evidence and limitations: main/extended reports and README.
+\end{frame}
+
+\end{document}

@@ -1,15 +1,9 @@
 \section{Conclusion}\label{sec:conclusion}
-We reproduced GlareShell without the authors' code or data. The pipeline works and, on a paper-style protocol and rebuilt corpus, the
-reported F1 of about 0.98 is reproducible. The paper's finer conclusions -- which embedding is second best, which GNN
-is best, how dimension and context size matter, and that normalisation and risk weights help -- are not supported once
-seeds and confidence intervals are taken into account.
+The reconstructed graph detector achieves high F1 on the random and grouped splits. Logistic regression
+on TF-IDF features achieves higher F1 on the grouped splits and higher recall and lower FPR on held-out
+sources. Adding benign training files lowers GAT's pooled false-positive rate but also lowers recall,
+including on the small set of webshells from held-out sources.
 
-More important is what the benchmark measures. Benign files come from five large frameworks, webshells from public
-collections; 77\% of test webshells have a near-duplicate in training; a lexical baseline is more accurate than any
-GNN; and the models flag most small, legitimate standalone scripts. A detector trained this way would raise frequent
-false alarms on exactly the small vendor applications that run on industrial web servers. For a practical
-detector we would (i) collect benign code that resembles the deployment (small procedural applications, admin
-tools, upload handlers) -- five such applications already cut the GAT false-positive rate from 2.5\% to 0.9\%
-(\Cref{sec:hard}), and more are needed -- (ii) evaluate on cluster- and source-disjoint splits by default, (iii) relabel helper files
-inside webshell kits, and (iv) report FPR on unseen projects alongside F1. All code, splits, per-run predictions and
-the document trail needed to rerun this study are in the repository.
+The fixture study shows that the graph representation can discard variable dependencies, exception paths
+and namespace information. Evaluating deployment would require independently reviewed labels, more diverse
+software projects and thresholds calibrated on separate validation data.

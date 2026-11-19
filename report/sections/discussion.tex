@@ -1,88 +1,61 @@
 \section{Discussion}\label{sec:discussion}
 
-\subsection{What was reproduced, improved, or not reproduced}
-\Cref{tab:verdict} separates what we could confirm from what we improved and what we could not reproduce.
-Colours: \repro{reproduced}, \improved{improved / extended}, \notrepro{not reproduced}.
+\subsection{Assessment of the reproduced claims}
+\Cref{tab:verdict} compares the results with the original study and summarises the additional experiments.
+FastText has the highest mean F1 among the tested embeddings. The paired comparisons provide limited
+evidence for the reported advantage of GAT over the other graph architectures.
 
 \begin{table*}[!t]\centering\footnotesize
-\caption{Verdict per claim of the paper and per addition of this report.}\label{tab:verdict}
-\begin{tabularx}{\linewidth}{@{}p{0.30\linewidth}Xl@{}}\toprule
-Claim / item & Our evidence & Verdict \\ \midrule
-ICFG + embedding + GNN detects webshells with F1 $\approx$ 0.95--0.99 (Tables 2, 4) &
-  F1 0.90--0.98 (Table 2 setting), 0.980--0.983 (Table 4 setting) on a paper-style protocol, 5 seeds & \repro{Reproduced} \\
-FastText is the best embedding (Table 2) & 0.977 $\pm$ 0.009, best of six by $>$0.04 & \repro{Reproduced} \\
-Ranking of the other five embeddings & within 0.036 F1, overlapping CIs; order differs & \notrepro{Not reproduced} \\
-GAT is the best GNN (Table 4) & GCN 0.981, GIN 0.983, GAT 0.980; paired tests $p=0.79$ / $0.48$ & \notrepro{Not reproduced} \\
-F1 rises then falls with embedding dimension (Fig.~6) & flat 0.978--0.981 for 20--120 & \notrepro{Not reproduced} \\
-Context window 5 is optimal (Fig.~6--7) & nominal maximum at 5, not significant & \repro{Partly reproduced} \\
-Normalisation and risk weights improve all metrics (Fig.~8) & same order on \pr{} ($p=0.10$); reversed on \cg{} ($p=0.07$) & \notrepro{Not reproduced} \\
-GNN outperforms sequence/text approaches & TF-IDF + LR: F1 0.997 (\pr), 0.992 (\cg), lower FPR everywhere; significant on all protocols & \notrepro{Not reproduced} \\
-Per-file cost suitable for online monitoring & 11\,ms extraction + ms scoring per file & \repro{Reproduced} \\ \midrule
-Working extractor on PHP 8 code & four LChecker fixes, documented & \improved{Improved} \\
-Documented corpus with SHA-256, provenance, near-dup clusters & GlareShell-R, data card, label guide & \improved{Extended} \\
-Leakage-controlled and cross-source evaluation & 77\% of test webshells leak in the paper's split; F1 $-$2 points on \cg; FPR $\times$4 on unseen projects & \improved{Extended} \\
-Shortcut probes & graph statistics alone F1 0.92; 10/12 benign standalone scripts flagged & \improved{Extended} \\
-Statistical rigour & paired $t$ + exact McNemar tests on identical test sets (\Cref{tab:signif}) & \improved{Extended} \\
-Deployment operating points & ROC/PR; recall at 0.1\% FPR on unseen projects: GAT 0.06 vs.\ TF-IDF 0.64 & \improved{Extended} \\
-Leave-one-collection-out split & 3 collections, 77--222 unseen webshells each (\Cref{tab:loo}) & \improved{Extended} \\
-Training on small benign applications & FPR on all benign test files: GAT 2.5\% $\to$ 0.9\% ($p=0.006$), overall recall difference inconclusive; still 8/12 probes flagged (\Cref{tab:hard}) & \improved{Improved} \\
-Standalone detector / directory monitor & \texttt{src/detect.py} & \improved{Extended} \\
-\bottomrule
-\end{tabularx}
+\caption{Claim assessment from the completed v2 evidence. Scope and uncertainty accompany each item.}\label{tab:verdict}
+\input{generated/verdict.tex}
 \end{table*}
 
 \subsection{Threats to validity}\label{sec:threats}
-\paragraph{Protocol correction and evidence boundaries}
-The saved predictions belong to legacy version~1. Corrected clustering and lexical whitespace hashing change
-split membership, so corrected model performance remains unmeasured until retraining. Our updated hard-benign
-analysis fixes a separate per-seed grouping error using the existing predictions; it does not retrain a model.
-The label audit is pending. Controlled construct observations (\Cref{sec:constructs}) establish representation
-losses, not detector error rates or semantic equivalence of PHP programs.
+\paragraph{Internal validity}
+The ICFG construction, pruning, normalisation, risk lists and statement format reconstruct the paper's description.
+Some choices are underspecified by the authors. Architecture settings follow different published widths rather than equal parameter budgets. We document them and retain exact configurations.
+Flattening namespace/declare/exception wrappers improves coverage but loses context and exception alternatives;
+bounded call resolution and undirected model edges further simplify the program. Failed or empty graphs remain
+in the cohort, which can create systematic errors or shortcuts. The fixed statement/graph caps lose long or
+obfuscated content. Numerical variation remains in parallel Gensim training and CUDA scatter operations.
+The source snapshot, runtime record and regression tests bound these implementation claims without proving
+semantic equivalence to the authors' code.
 
-\paragraph{Internal validity (does our pipeline do what the paper did?)}
-\begin{itemize}
-  \item \emph{Unreleased implementation.} ICFG construction above LChecker's CFG builder, the pruning rules, the
-        built-in function list, the risk lists and the statement text format are our reading of the paper. Different
-        choices change the vocabulary (we obtain 484k distinct normalised statements) and therefore the embeddings.
-  \item \emph{Extractor fixes.} We changed LChecker's behaviour on namespaces, try/catch, \texttt{for} conditions and
-        short tags (\Cref{sec:method}). Each fix was needed to avoid graphs that are empty for one class only; if the
-        authors ran vanilla LChecker on PHP~8 their graphs were partly empty, and their numbers are not directly
-        comparable to ours in either direction.
-  \item \emph{Unspecified training details} (epochs for Table 2, early stopping, model selection, embedding training
-        corpus, threshold). We fixed them before looking at test results and report all of them (\Cref{tab:hyper}).
-  \item \emph{Resource-driven deviations}: 2,000-statement cap (15\% of webshells truncated), FastText 200k buckets,
-        own GloVe implementation.
-\end{itemize}
+\paragraph{Construct validity}
+The target is a label assigned by collection or application. Authorisation and intent are difficult to infer
+from one file. A legitimate file manager, installer, callback or command feature can resemble a webshell;
+a collection can contain helpers or obsolete code that is no longer executable under the recorded PHP runtime.
+Graph statistics include coarse API/input information as well as structure. Strong performance by that baseline
+is evidence of separability with simpler features, not proof that graph topology alone explains the task.
+Controlled graph collisions demonstrate missing information; they do not establish identical program semantics
+or a classifier error rate. Automatic error tags are overlapping heuristics, not human label adjudications.
 
-\paragraph{Construct validity (do the labels and metrics measure webshell detection?)}
-\begin{itemize}
-  \item \emph{Source-level labels.} ``Benign'' means ``file of a large, modern framework/CMS release'', ``webshell'' means
-        ``file of a public collection''. The two populations also differ in age (PHP~4/5 vs.\ PHP~8 style), size,
-        structure (procedural vs.\ namespaced classes) and parseability (\Cref{tab:extraction}). A classifier can reach
-        high scores by separating these \emph{populations} rather than by recognising malicious behaviour; the
-        graph-statistics probe and the hand-written standalone benign scripts (\Cref{sec:beyond}) quantify this.
-  \item \emph{Label noise.} Collections contain non-malicious helper files; benign projects contain test fixtures and
-        installers with webshell-like capabilities. We did not relabel by hand.
-  \item \emph{Class prior.} 23\% webshells in test is unrealistically high for a file-upload monitor, so precision and F1
-        overstate deployment performance; FPR on the 9,091 held-out benign files is the more relevant number.
-\end{itemize}
+\paragraph{External validity}
+The sources include few benign projects, many old procedural webshells and a large aggregate with incomplete
+attribution. Cross-source positives number only \result{cross_source_test_webshell}; collection holdouts are not
+verified family holdouts. There is no meaningful temporal evaluation, adaptive-attacker test, runtime code-generation
+coverage or industrial-server deployment. Auxiliary files receive exact/token deduplication but not main-corpus
+near-duplicate control. Handwritten benign probes are stress cases rather than a random server population.
+Class priors and application context differ in deployment. For an illustrative prevalence $\pi$,
+$\mathrm{Precision}=\pi\,\mathrm{TPR}/[\pi\,\mathrm{TPR}+(1-\pi)\,\mathrm{FPR}]$;
+corpus precision therefore cannot be transferred unchanged.
 
-\paragraph{External validity (does it generalise?)}
-\begin{itemize}
-  \item Only five benign projects in training (ten with the improvement experiment); eight more in testing. Industrial web servers (the paper's motivating
-        setting) run vendor-specific, often small, procedural PHP applications that resemble neither population.
-  \item Only 18 webshells are novel w.r.t.\ every paper source; recall on them has wide intervals. The
-        leave-one-collection-out protocol gives 77--222 test webshells per collection, but public collections copy
-        from each other, so a held-out collection is not a held-out \emph{family}. No temporal split was possible:
-        93\% of the webshells share one repository commit date (\Cref{sec:leak}).
-  \item No adaptive attacker: renaming variables and functions is neutralised by normalisation, but string building,
-        dynamic calls and payload encoding already defeat the risk mechanism for many collected samples.
-\end{itemize}
+\paragraph{Conclusion validity}
+Five coupled seeds measure limited split/training variation; cross-source test files repeat across those seeds.
+Public variants and files within a project are correlated. This is a retrospective benchmark reanalysis; earlier v1 results informed the study design.
+Neither seed intervals nor file-level Wilson intervals
+capture uncertainty over arbitrary future projects. Paired tests are exploratory and not multiplicity-adjusted.
+Non-significance is not equivalence, and a nominal maximum is not a proven optimum.
+Alarm-budget thresholds are selected on the test ROC and are optimistic. A pooled FPR improvement must be read
+with recall and project/probe subgroups, especially the small novel-positive cohort.
 
-\paragraph{Conclusion validity (are the differences real?)}
-Five seeds give 95\% intervals of roughly $\pm$0.01--0.03 F1 for the GNNs; several differences reported in the paper
-(e.g.\ between embedding methods, 0.91--0.95 F1 in a single run) are of the same order and cannot be distinguished
-without repeated runs; we therefore test every key comparison with paired tests (\Cref{tab:signif}). Five seeds
-give limited power: a non-significant difference is ``not shown'', not ``shown equal''. We never select
-hyper-parameters on the test set; only the alarm-budget operating points of \Cref{tab:oppoints} use test-set
-thresholds, which makes them optimistic for every model alike.
+\paragraph{Independent label review}
+The blinded review of 150 files awaits 300 independent decisions. The reported metrics rely on source
+labels, with reviewer agreement and label-error prevalence still unknown.
+
+\subsection{Implications}
+A useful next study would broaden independently checked legitimate code and newly sourced webshells, preserve
+project/cluster separation, and calibrate an alarm on separate validation data. Better representation could retain
+variable identity, explicit def-use/taint relations, exception alternatives and dynamic-call uncertainty.
+Such changes require their own controlled ablations and failure analysis. This project supplies the parser,
+benchmark, retained predictions and construct cases needed to make those comparisons reviewable.

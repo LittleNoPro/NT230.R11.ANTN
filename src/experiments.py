@@ -68,6 +68,7 @@ def jobs(group):
 
 
 def main(groups):
+    failures = []
     if "hard" in groups:
         import os
         assert groups == ["hard"] and os.environ.get("GLARESHELL_GRAPHS") == "graphs_aug.pkl", \
@@ -81,10 +82,13 @@ def main(groups):
                 t = r["test"]
                 print(f"{name:22s} F1={t['f1']:.4f} P={t['precision']:.4f} R={t['recall']:.4f} "
                       f"FPR={t['fpr']:.4f} ep={r['epochs_run']} t={r['secs_train']:.0f}s", flush=True)
-            except Exception:
+            except Exception as error:
                 traceback.print_exc()
+                failures.append((name, type(error).__name__))
             gc.collect()
             torch.cuda.empty_cache()
+    if failures:
+        raise SystemExit(f"Experiment suite incomplete: {failures}; completed runs were saved for resumption")
 
 
 if __name__ == "__main__":

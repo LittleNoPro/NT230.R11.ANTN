@@ -1,33 +1,25 @@
-\section{The malware object: PHP webshells}\label{sec:background}
+\section{PHP webshells and threat model}\label{sec:background}
 
 \subsection{What a webshell is and how it operates}
-A \emph{webshell} is a server-side script planted in the document root of a web server that gives a remote
-party interactive control of that server through ordinary HTTP requests (MITRE ATT\&CK T1505.003~\cite{mitre_t1505003}).
-It is a \emph{post-exploitation persistence} artefact: it does not compromise the server by itself but is
-dropped after an initial-access step (unrestricted file upload, LFI/RFI, SQL injection with
-\texttt{INTO OUTFILE}, a vulnerable plugin, stolen FTP/CMS credentials). Once present, the PHP interpreter
-executes it on every request to its URL, with the privileges of the web-server user.
-GlareShell~\paperref{} places this in an Industrial-Internet setting: the web server is the management and
-monitoring interface of industrial control systems, so a webshell is a pivot from the IT web tier towards
-the OT network.
+A \emph{webshell} is a server-side script that provides remote access through HTTP requests
+(MITRE ATT\&CK T1505.003~\cite{mitre_t1505003}). In the threat model, an attacker plants the script after
+obtaining write access to a location from which the server can run it. The script runs with the permissions
+of the server's PHP process. GlareShell~\paperref{} considers industrial web servers that provide management
+and monitoring interfaces. A compromised server may provide a foothold from which to reach operational
+technology (OT) systems.
 
-\Cref{fig:concept} summarises the concepts we use throughout the report. Webshells fall into a few
-\emph{families} that differ in size and in the evidence they leave in source code:
+\Cref{fig:concept} summarises the threat and the detector's inputs. Webshell categories differ in size,
+functionality and the signals they leave in source code.
 \begin{itemize}
-  \item \textbf{One-line backdoors} (``China Chopper''-style): \verb|<?php @eval($_POST['x']);?>|. One statement;
-        the attacker's client sends the PHP payload in every request.
-  \item \textbf{Command shells}: pass request input to \texttt{system}/\texttt{exec}/\texttt{passthru}/\texttt{popen}/\verb|`backticks`|.
-  \item \textbf{Management kits} (c99, r57, WSO, b374k): thousands of lines with file manager, upload, SQL client,
-        port binding, mail bomber, self-removal. Most of their code is ordinary UI code.
-  \item \textbf{Obfuscated loaders}: hide the payload in an encoded string
-        (\verb|eval(gzinflate(base64_decode('...')))|) or build the dangerous function name at run time
-        (\verb|$f='as'.'sert'; $f($_REQUEST[k]);|), or route it through callbacks
-        (\verb|array_map($_GET['f'], [$_GET['a']])|, \verb|preg_replace('/.*/e', ...)|).
-  \item \textbf{Uploaders / file managers}: no command execution at all -- only \texttt{move\_uploaded\_file},
-        \texttt{fopen}/\texttt{fwrite}; they are used to stage the next payload.
+  \item \textbf{Compact backdoors} provide remote code execution through very little local code.
+  \item \textbf{Command shells} expose operating-system command execution.
+  \item \textbf{Management kits} such as c99, r57, WSO and b374k combine file, database and administration
+        functions with user-interface code.
+  \item \textbf{Obfuscated loaders} may hide code in encoded strings or resolve call targets at run time.
+  \item \textbf{Uploaders and file managers} provide file operations and can support later stages of a compromise.
 \end{itemize}
-Variants inside a family usually differ only by password, banner, language of the UI or layout, which is why
-public collections are full of near-duplicates (\Cref{sec:dataset}).
+Variants of the same family can differ in credentials, banners or interface layout. \Cref{sec:dataset}
+describes how we group near-duplicates in the public collections.
 
 \begin{figure*}[!t]
 \centering
@@ -46,8 +38,8 @@ public collections are full of near-duplicates (\Cref{sec:dataset}).
 \node[det,right=8mm of fs] (icfg) {Static view: ICFG of\\PHP statements\\(normalised + risk level)};
 \node[det,right=8mm of icfg] (gnn) {GNN classifier\\$\rightarrow$ allow / block};
 \draw (fs)--(icfg); \draw (icfg)--(gnn);
-\node[box,below=8mm of fs,fill=gray!8] (fam) {Families: one-liner $\cdot$ command shell $\cdot$ kit $\cdot$\\obfuscated loader $\cdot$ uploader};
-\node[conf,below=8mm of icfg,xshift=14mm] (conf) {Confusable: benign code with exec/callbacks;\\webshells with only dynamic calls or hidden payloads};
+\node[box,below=8mm of fs,xshift=-5mm,fill=gray!8] (fam) {Families: one-liner $\cdot$ command shell $\cdot$ kit $\cdot$\\obfuscated loader $\cdot$ uploader};
+\node[conf,right=8mm of fam] (conf) {Confusable: benign code with exec/callbacks;\\webshells with only dynamic calls or hidden payloads};
 \draw[dotted] (fam)--(fs); \draw[dotted] (conf)--(icfg);
 \node[box,left=8mm of fs,fill=gray!8] (evade) {Evasion: string building,\\encoding, callbacks,\\short tags, padding};
 \draw[dotted] (evade)--(fs);
@@ -72,20 +64,18 @@ the sources of confusion we analyse (orange).}
 
 \subsection{Research questions}
 \begin{description}
-  \item[RQ1 (reproduction)] Can GlareShell's reported detection performance (Tables 2 and 4 of~\paperref{}) be
-        reproduced from the paper's description, using the paper's data sources and protocol?
+  \item[RQ1 (reproduction)] How closely do results on the reconstructed corpus match Tables 2 and 4 of~\paperref{}?
   \item[RQ2 (components)] Do statement normalisation, risk weights, the choice of embedding and the choice of
         GNN contribute as claimed (Fig.~6--8 of~\paperref{})?
-  \item[RQ3 (validity)] How much of the performance is explained by near-duplicate leakage between train and test
-        and by the benign/webshell source confound?
-  \item[RQ4 (generalisation)] How does the detector behave on benign projects and webshell collections that were
-        not part of the training sources, as a proxy for source generalisation?
+  \item[RQ3 (validity)] How much near-duplicate overlap occurs between training and test partitions, and how
+        do scores differ under controlled splitting?
+  \item[RQ4 (generalisation)] How does the detector perform on held-out benign projects and webshell collections?
 \end{description}
 
 \subsection{Labels and the features the detector sees}
-A file is \emph{webshell} if it comes from a public webshell collection and \emph{benign} if it comes from a
-pinned release of a widely deployed project; labels are source-level (full guide in
-\texttt{docs/LABEL\_GUIDE.md}). \Cref{tab:features} lists what GlareShell actually observes for each file.
+We label files from public webshell collections as \emph{webshell} and files from pinned software projects
+as \emph{benign}. The label guide documents these source-level assignments
+(\texttt{docs/LABEL\_GUIDE.md}). \Cref{tab:features} lists the features available to the detector.
 
 \begin{table*}[!t]
 \centering\small
@@ -104,10 +94,8 @@ Graph & mean of final node states (Eq.~6 of~\paperref{}) & whole-file behaviour 
 \end{tabularx}
 \end{table*}
 
-\paragraph{Confusable cases} The feature view predicts where the detector should fail, and we test these
-predictions in \Cref{sec:errors}:
-(i) benign framework code is full of \emph{obfuscated}-level calls (\texttt{call\_user\_func\_array} for dispatch,
-\texttt{usort} with closures, \texttt{preg\_replace\_callback}) and installers/updaters call \texttt{exec};
-(ii) webshells that never call a dangerous built-in by name (dynamic calls \verb|$f(...)|, uploaders) get no
-risk signal; (iii) payloads inside encoded strings are a single opaque statement;
-(iv) the static ICFG is incomplete for reflection, variable functions and \texttt{include} of runtime paths.
+\paragraph{Potential errors}
+Legitimate application code can use callbacks or command-execution APIs that trigger risk flags. Dynamic
+calls can leave the target unresolved, and an encoded string provides limited information about its
+contents. Reflection and runtime includes further limit static graph construction. \Cref{sec:errors}
+examines errors consistent with these limits.

@@ -1,0 +1,577 @@
+{
+  "status": "passed",
+  "stage": "complete evaluation",
+  "checked_at_utc": "2026-11-18T19:07:07.479637+00:00",
+  "checked_splits": 40,
+  "checked_runs": 346,
+  "main_samples": 25174,
+  "hard_benign_samples": 5232,
+  "split_counts": {
+    "paper_random_s0": {
+      "train": {
+        "webshell": 2477,
+        "benign": 8300
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 310
+      },
+      "test": {
+        "webshell": 310,
+        "benign": 1038
+      }
+    },
+    "paper_random_s1": {
+      "train": {
+        "benign": 8300,
+        "webshell": 2477
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 310
+      },
+      "test": {
+        "benign": 1038,
+        "webshell": 310
+      }
+    },
+    "paper_random_s2": {
+      "train": {
+        "benign": 8300,
+        "webshell": 2477
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 310
+      },
+      "test": {
+        "benign": 1038,
+        "webshell": 310
+      }
+    },
+    "paper_random_s3": {
+      "train": {
+        "webshell": 2477,
+        "benign": 8300
+      },
+      "val": {
+        "webshell": 310,
+        "benign": 1037
+      },
+      "test": {
+        "benign": 1038,
+        "webshell": 310
+      }
+    },
+    "paper_random_s4": {
+      "train": {
+        "webshell": 2477,
+        "benign": 8300
+      },
+      "val": {
+        "webshell": 310,
+        "benign": 1037
+      },
+      "test": {
+        "benign": 1038,
+        "webshell": 310
+      }
+    },
+    "clean_group_s0": {
+      "train": {
+        "webshell": 2414,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 302,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 300,
+        "benign": 1037
+      }
+    },
+    "clean_group_s1": {
+      "train": {
+        "webshell": 2419,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 299,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 298,
+        "benign": 1037
+      }
+    },
+    "clean_group_s2": {
+      "train": {
+        "webshell": 2414,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 302,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 300,
+        "benign": 1037
+      }
+    },
+    "clean_group_s3": {
+      "train": {
+        "webshell": 2413,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 303,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 300,
+        "benign": 1037
+      }
+    },
+    "clean_group_s4": {
+      "train": {
+        "webshell": 2414,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 302,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 300,
+        "benign": 1037
+      }
+    },
+    "cross_source_s0": {
+      "train": {
+        "webshell": 2414,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 302,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 20,
+        "benign": 9092
+      }
+    },
+    "cross_source_s1": {
+      "train": {
+        "webshell": 2419,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 299,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 20,
+        "benign": 9092
+      }
+    },
+    "cross_source_s2": {
+      "train": {
+        "webshell": 2414,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 302,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 20,
+        "benign": 9092
+      }
+    },
+    "cross_source_s3": {
+      "train": {
+        "webshell": 2413,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 303,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 20,
+        "benign": 9092
+      }
+    },
+    "cross_source_s4": {
+      "train": {
+        "webshell": 2414,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 302,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 20,
+        "benign": 9092
+      }
+    },
+    "loo_tennc_s0": {
+      "train": {
+        "benign": 8298,
+        "webshell": 1786
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 220
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 365
+      }
+    },
+    "loo_tennc_s1": {
+      "train": {
+        "benign": 8298,
+        "webshell": 1788
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 218
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 365
+      }
+    },
+    "loo_tennc_s2": {
+      "train": {
+        "benign": 8298,
+        "webshell": 1774
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 232
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 365
+      }
+    },
+    "loo_tennc_s3": {
+      "train": {
+        "benign": 8298,
+        "webshell": 1795
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 211
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 365
+      }
+    },
+    "loo_tennc_s4": {
+      "train": {
+        "benign": 8298,
+        "webshell": 1779
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 227
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 365
+      }
+    },
+    "loo_bartblaze_s0": {
+      "train": {
+        "benign": 8298,
+        "webshell": 2283
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 241
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 178
+      }
+    },
+    "loo_bartblaze_s1": {
+      "train": {
+        "benign": 8298,
+        "webshell": 2227
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 297
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 178
+      }
+    },
+    "loo_bartblaze_s2": {
+      "train": {
+        "benign": 8298,
+        "webshell": 2269
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 255
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 178
+      }
+    },
+    "loo_bartblaze_s3": {
+      "train": {
+        "benign": 8298,
+        "webshell": 2237
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 287
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 178
+      }
+    },
+    "loo_bartblaze_s4": {
+      "train": {
+        "benign": 8298,
+        "webshell": 2251
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 273
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 178
+      }
+    },
+    "loo_xl7dev_s0": {
+      "train": {
+        "benign": 8298,
+        "webshell": 2236
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 272
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 139
+      }
+    },
+    "loo_xl7dev_s1": {
+      "train": {
+        "benign": 8298,
+        "webshell": 2257
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 251
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 139
+      }
+    },
+    "loo_xl7dev_s2": {
+      "train": {
+        "benign": 8298,
+        "webshell": 2255
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 253
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 139
+      }
+    },
+    "loo_xl7dev_s3": {
+      "train": {
+        "benign": 8298,
+        "webshell": 2217
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 291
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 139
+      }
+    },
+    "loo_xl7dev_s4": {
+      "train": {
+        "benign": 8298,
+        "webshell": 2212
+      },
+      "val": {
+        "benign": 1037,
+        "webshell": 296
+      },
+      "test": {
+        "benign": 1037,
+        "webshell": 139
+      }
+    },
+    "base_s0": {
+      "train": {
+        "webshell": 2414,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 302,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 320,
+        "benign": 12850
+      }
+    },
+    "base_s1": {
+      "train": {
+        "webshell": 2419,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 299,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 318,
+        "benign": 12850
+      }
+    },
+    "base_s2": {
+      "train": {
+        "webshell": 2414,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 302,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 320,
+        "benign": 12850
+      }
+    },
+    "base_s3": {
+      "train": {
+        "webshell": 2413,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 303,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 320,
+        "benign": 12850
+      }
+    },
+    "base_s4": {
+      "train": {
+        "webshell": 2414,
+        "benign": 8298
+      },
+      "val": {
+        "webshell": 302,
+        "benign": 1037
+      },
+      "test": {
+        "webshell": 320,
+        "benign": 12850
+      }
+    },
+    "aug_s0": {
+      "train": {
+        "webshell": 2414,
+        "benign": 10534
+      },
+      "val": {
+        "webshell": 302,
+        "benign": 1312
+      },
+      "test": {
+        "webshell": 320,
+        "benign": 12850
+      }
+    },
+    "aug_s1": {
+      "train": {
+        "webshell": 2419,
+        "benign": 10564
+      },
+      "val": {
+        "webshell": 299,
+        "benign": 1282
+      },
+      "test": {
+        "webshell": 318,
+        "benign": 12850
+      }
+    },
+    "aug_s2": {
+      "train": {
+        "webshell": 2414,
+        "benign": 10572
+      },
+      "val": {
+        "webshell": 302,
+        "benign": 1274
+      },
+      "test": {
+        "webshell": 320,
+        "benign": 12850
+      }
+    },
+    "aug_s3": {
+      "train": {
+        "webshell": 2413,
+        "benign": 10525
+      },
+      "val": {
+        "webshell": 303,
+        "benign": 1321
+      },
+      "test": {
+        "webshell": 320,
+        "benign": 12850
+      }
+    },
+    "aug_s4": {
+      "train": {
+        "webshell": 2414,
+        "benign": 10561
+      },
+      "val": {
+        "webshell": 302,
+        "benign": 1285
+      },
+      "test": {
+        "webshell": 320,
+        "benign": 12850
+      }
+    }
+  },
+  "limitations": [
+    "MinHash-LSH is approximate; cluster disjointness does not prove exhaustive deduplication",
+    "The hard-benign extension removes exact/token duplicates; its added files are not near-duplicate clustered",
+    "Source collection labels are not independent human verification",
+    "Cross-source projects remain static public-corpus tests, not industrial server deployment tests"
+  ]
+}

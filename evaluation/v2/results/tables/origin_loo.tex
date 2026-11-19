@@ -1,0 +1,23 @@
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Held-out collection (\#webshells) & Model & Recall (unseen collection) & FPR & F1 \\ \midrule
+tennc/webshell (365) & GlareShell GAT & 0.957$\pm$0.011 & 0.0048$\pm$0.0031 & 0.9714$\pm$0.0048 \\
+tennc/webshell (365) & GlareShell GCN & 0.951$\pm$0.013 & 0.0046$\pm$0.0030 & 0.9685$\pm$0.0093 \\
+tennc/webshell (365) & TF-IDF + LR & 0.985$\pm$0.003 & 0.0004$\pm$0.0007 & 0.9920$\pm$0.0014 \\
+tennc/webshell (365) & TF-IDF + XGBoost & 0.979$\pm$0.003 & 0.0010$\pm$0.0008 & 0.9878$\pm$0.0019 \\
+tennc/webshell (365) & Graph-stats + XGBoost & 0.837$\pm$0.014 & 0.0218$\pm$0.0073 & 0.8814$\pm$0.0109 \\
+tennc/webshell (365) & Rule: risky call + request input & 0.564$\pm$0.000 & 0.0118$\pm$0.0037 & 0.7065$\pm$0.0047 \\
+bartblaze/PHP-backdoors (178) & GlareShell GAT & 0.926$\pm$0.009 & 0.0066$\pm$0.0040 & 0.9428$\pm$0.0110 \\
+bartblaze/PHP-backdoors (178) & GlareShell GCN & 0.917$\pm$0.008 & 0.0060$\pm$0.0037 & 0.9396$\pm$0.0075 \\
+bartblaze/PHP-backdoors (178) & TF-IDF + LR & 1.000$\pm$0.000 & 0.0004$\pm$0.0007 & 0.9989$\pm$0.0019 \\
+bartblaze/PHP-backdoors (178) & TF-IDF + XGBoost & 0.999$\pm$0.003 & 0.0012$\pm$0.0010 & 0.9961$\pm$0.0031 \\
+bartblaze/PHP-backdoors (178) & Graph-stats + XGBoost & 0.687$\pm$0.009 & 0.0204$\pm$0.0070 & 0.7606$\pm$0.0226 \\
+bartblaze/PHP-backdoors (178) & Rule: risky call + request input & 0.320$\pm$0.000 & 0.0118$\pm$0.0037 & 0.4612$\pm$0.0072 \\
+xl7dev/WebShell (139) & GlareShell GAT & 0.964$\pm$0.006 & 0.0052$\pm$0.0037 & 0.9627$\pm$0.0126 \\
+xl7dev/WebShell (139) & GlareShell GCN & 0.961$\pm$0.008 & 0.0079$\pm$0.0093 & 0.9521$\pm$0.0332 \\
+xl7dev/WebShell (139) & TF-IDF + LR & 0.993$\pm$0.000 & 0.0010$\pm$0.0015 & 0.9928$\pm$0.0054 \\
+xl7dev/WebShell (139) & TF-IDF + XGBoost & 0.991$\pm$0.007 & 0.0012$\pm$0.0010 & 0.9914$\pm$0.0040 \\
+xl7dev/WebShell (139) & Graph-stats + XGBoost & 0.876$\pm$0.012 & 0.0210$\pm$0.0073 & 0.8623$\pm$0.0199 \\
+xl7dev/WebShell (139) & Rule: risky call + request input & 0.633$\pm$0.000 & 0.0118$\pm$0.0037 & 0.7359$\pm$0.0118 \\
+\bottomrule
+\end{tabular}

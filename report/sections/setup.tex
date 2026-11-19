@@ -1,13 +1,19 @@
 \section{Experimental setup}\label{sec:setup}
-\paragraph{Hardware/software} Intel CPU (16 threads), 7.6\,GB RAM, NVIDIA RTX~3050 Laptop 6\,GB, WSL2 Ubuntu,
-PHP~8.3.6, Python~3.11, PyTorch~2.4.1 (CUDA 12.1), PyTorch Geometric~2.6.1, Gensim~4.3.3 (paper: Xeon E5-2620 for
-extraction, i7-12700 + RTX~3060 for training).
+\paragraph{Hardware and software}
+The v2 evaluation uses a Tesla V100-SXM2 (16\,GB), Python~3.11.18, PHP~8.2.35,
+PyTorch~2.4.1+cu121 (CUDA~12.1), PyTorch Geometric~2.6.1 and Gensim~4.3.3.
+The container is limited to at most 48 CPU cores and 10\,GB host RAM, with four extraction workers.
+Independent runs share these resources. A CUDA computation and the regression tests passed in that image
+before evaluation.
+The Docker image ID, full package/extension lists and hashes of the evaluated source files are retained
+in \texttt{evaluation/v2/environment.json}. Historical v1 predictions, produced with PHP~8.3 and a laptop GPU,
+are preserved separately and do not supply the v2 results.
 
-\paragraph{Metrics} Positive class = webshell. We report the paper's Precision, Recall, TNR, Accuracy, F1
-(Eq.~7--11) plus the false-positive rate FPR = 1 $-$ TNR, which matters most in deployment because benign
-uploads vastly outnumber webshells. Every configuration is run with \textbf{5 seeds} (split, embedding and
-GNN initialisation all depend on the seed; sweeps use 3 seeds); we report mean $\pm$ half-width of the 95\%
-Student-$t$ interval. For \xs{} we additionally give 95\% Wilson intervals on the pooled test counts of seed~0.
+\paragraph{Metrics}
+Files labelled as webshells by source form the positive class. We report precision, recall, true-negative rate
+(TNR), accuracy, F1 and the false-positive rate (FPR), which equals $1-\mathrm{TNR}$. We report means and
+95\% Student-$t$ intervals across five seeds for the main comparisons and three seeds for the sweeps.
+The analysis JSON also records 95\% Wilson intervals for the \xs{} test counts at seed~0.
 
 \paragraph{Experiments}
 \begin{enumerate}
@@ -19,10 +25,20 @@ Student-$t$ interval. For \xs{} we additionally give 95\% Wilson intervals on th
   \item \textbf{Beyond the paper}: GCN and GAT on \cg{} and \xs; baselines on all protocols.
 \end{enumerate}
 
-\paragraph{Baselines} (\texttt{src/baselines.py}, same splits):
-\textbf{TF-IDF + LR / XGBoost} on lexical PHP tokens of the raw file (1--2-grams, hashed to $2^{18}$ features;
-$\chi^2$ top-5k for XGBoost) -- the classic text approach of prior work~\cite{feng2024glareshell};
-\textbf{rules} derived from GlareShell's own risk mechanism (webshell iff a critical call / any risky call / a risky
-call and request input); and \textbf{graph-statistics + XGBoost}: 12 numbers per ICFG (size, density,
-\#critical, \#obfuscated, unique-statement ratio, parse error, truncated, \dots) and \emph{no code semantics}. If this
-probe performs well, part of the task is solvable from artefacts of the corpus rather than from behaviour.
+\paragraph{Baselines}
+We evaluate the baselines on the same splits (\texttt{src/baselines.py}). The text baselines fit logistic
+regression (LR) or XGBoost on TF-IDF features from regular-expression tokenisation of the first 100,000
+bytes of each file. We hash unigrams and bigrams into $2^{18}$ features and select the 5,000 highest-scoring
+features by $\chi^2$ for XGBoost. The rule baselines flag a critical call, any risky call, or a risky call
+combined with a request-input indicator. A separate XGBoost baseline uses 12 graph features, including
+size, risk counts, input indicators and parser flags.
+
+\paragraph{Selection and inference}
+The GNN checkpoint maximises validation F1 with early stopping; the classification threshold is fixed at 0.5.
+All embedding models, TF-IDF weights and feature selection are fitted on training files only.
+Cross-source experiments reuse the corresponding clean training/validation sets and training embedding.
+Reported confidence intervals describe variation over these five coupled split/initialisation seeds, not
+uncertainty over future projects. Wilson intervals are descriptive file-level intervals; correlated variants
+can violate their independence assumption. Paired tests are exploratory and unadjusted for multiple comparisons.
+A non-significant result does not establish equivalence. Alarm-budget thresholds are selected on the test ROC
+and are explicitly optimistic oracle bounds, not validation-calibrated deployment operating points.
